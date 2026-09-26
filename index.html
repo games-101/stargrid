@@ -1,0 +1,1462 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style></head><body>
+<title>Stargrid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#E9ECF1; --paper:#F5F6F9; --ink:#20233A; --ink-2:#4B5170; --ink-3:#7F859E;
+  --line:#D3D8E2; --grid-thin:#B3B9CB; --grid-thick:#262A45;
+  --gold:#E09B14; --gold-soft:#F6E5BD; --indigo:#3563C9; --indigo-soft:#DBE4F6;
+  --bad:#C2413A; --bad-soft:#F6D7D4; --good:#2F7D5B; --good-soft:#D5EEE2;
+  --r0:#F1CEC5; --r1:#C6DAEF; --r2:#CCE4C6; --r3:#EEE0A4; --r4:#D8CDEE; --r5:#BEDFDA; --r6:#ECC8DA; --r7:#D8E7B5; --r8:#EFD4B8; --r9:#CAD1EE; --r10:#DCD6CB;
+  --shadow:0 1px 2px rgba(27,33,64,.08),0 8px 24px rgba(27,33,64,.06);
+  --display:"Gloock",Georgia,"Times New Roman",serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+:root,:root[data-theme="dark"]{color-scheme:light}
+body.sg-dark{
+  color-scheme:dark;
+  --ground:#171B2B; --paper:#1F2438; --ink:#E4E7F1; --ink-2:#B0B6CE; --ink-3:#7F87A6;
+  --line:#323954; --grid-thin:#434C6E; --grid-thick:#D5D9E8;
+  --gold:#F2B43C; --gold-soft:#4A3A18; --indigo:#8EA6F5; --indigo-soft:#2A3560;
+  --bad:#F07A70; --bad-soft:#4A2328; --good:#6BCB9C; --good-soft:#1F3B31;
+  --r0:#6A3A33; --r1:#22597E; --r2:#2F5A35; --r3:#6A5E22; --r4:#5B3A7C; --r5:#1F5C57; --r6:#6A3056; --r7:#4B5F22; --r8:#6E4A22; --r9:#383F8C; --r10:#54504A;
+  --shadow:0 1px 2px rgba(0,0,0,.35),0 8px 24px rgba(0,0,0,.3);
+}
+body.sg-dark .star path{stroke:#3A2600}
+.topright{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.themebtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:9px 12px;cursor:pointer;font-weight:500;color:var(--ink-2)}
+.themebtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:20px 48px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:18px}
+.brand h1{font-family:var(--display);font-weight:400;font-size:40px;line-height:1;margin:0;letter-spacing:.01em}
+.brand h1 .st{color:var(--gold)}
+.brand p{margin:6px 0 0;color:var(--ink-2);font-size:14px;max-width:52ch}
+.viewtabs{display:flex;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px}
+.viewtabs button{border:0;background:transparent;padding:6px 14px;border-radius:7px;cursor:pointer;font-weight:500;color:var(--ink-2)}
+.viewtabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+/* level strip */
+.levels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:18px}
+.lvl{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:10px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.lvl .nm{font-family:var(--display);font-size:20px;line-height:1.1}
+.lvl .meta{font-size:12px;color:var(--ink-3);font-family:var(--mono)}
+.lvl .bar{height:4px;border-radius:2px;background:var(--line);margin-top:6px;overflow:hidden}
+.lvl .bar i{display:block;height:100%;background:var(--gold)}
+.lvl[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.lvl.insane .nm{color:var(--bad)}
+
+/* main layout */
+.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+.boardcard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.boardhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.boardhead h2{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
+.boardhead .rule{font-size:13px;color:var(--ink-2)}
+.timer{font-family:var(--mono);font-size:28px;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.timer small{font-size:13px;color:var(--ink-3);margin-left:6px}
+
+.boardwrap{display:grid;grid-template-columns:18px 1fr;grid-template-rows:18px 1fr;gap:4px;max-width:600px;margin:0 auto}
+.colnums,.rownums{display:grid;font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:center;align-items:center}
+.rownums{grid-template-rows:repeat(var(--n),minmax(0,1fr))}
+.colnums{grid-template-columns:repeat(var(--n),minmax(0,1fr))}
+.board{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));grid-template-rows:repeat(var(--n),minmax(0,1fr));aspect-ratio:1;width:100%;max-width:100%;border:3px solid var(--grid-thick);border-radius:4px;touch-action:none;user-select:none;-webkit-user-select:none;background:var(--grid-thin);gap:0}
+.cell{position:relative;overflow:hidden;border-right:1px solid var(--grid-thin);border-bottom:1px solid var(--grid-thin);display:grid;place-items:center;cursor:pointer;min-width:0}
+.board{position:relative}
+.walls{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+.walls path{fill:none;stroke:var(--grid-thick);stroke-width:3px;stroke-linecap:square;vector-effect:non-scaling-stroke}
+.cell.lastC{border-right:0}.cell.lastR{border-bottom:0}
+.cell .lab{position:absolute;left:3px;top:1px;font-size:10px;font-family:var(--mono);color:var(--ink-3);pointer-events:none}
+.board.nolabels .lab{display:none}
+.cell .m{display:contents}
+.cell svg{position:absolute;inset:16%;width:68%;height:68%;pointer-events:none}
+.cell .dot{position:absolute;left:41%;top:41%;width:18%;height:18%;border-radius:50%;background:var(--ink-2);pointer-events:none}
+.cell.cursor{box-shadow:inset 0 0 0 2px var(--indigo)}
+.cell.err{background-image:linear-gradient(var(--bad-soft),var(--bad-soft))}
+.cell.err svg path{fill:var(--bad)}
+.cell.wrong::after{content:"";position:absolute;inset:3px;border:2px dashed var(--bad);border-radius:3px;pointer-events:none}
+.cell.hl-unit{filter:saturate(1.6) brightness(.93)}
+.cell.hl-target::after{content:"";position:absolute;inset:2px;border:3px solid var(--gold);border-radius:4px;pointer-events:none}
+.star path{fill:var(--gold);stroke:#8A5A00;stroke-width:.7}
+.board.won .star path{animation:glow 1.2s ease-out}
+@keyframes glow{0%{transform:scale(.6);transform-origin:center}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.board.won .star path{animation:none}}
+
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;justify-content:center}
+.btn{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:500;font-size:14px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--ink-3)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.gold{background:var(--gold-soft);border-color:var(--gold)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn .cd{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+.stat{display:inline-flex;flex-direction:column;line-height:1.15}
+.stat small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-2)}
+.stat span{font-family:var(--mono);font-size:18px;font-variant-numeric:tabular-nums}
+.btn .k{font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--paper);padding:7px 12px;cursor:pointer;font-weight:500;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--indigo-soft);color:var(--indigo)}
+
+/* side panel */
+.side{display:flex;flex-direction:column;gap:16px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.panel h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:600}
+.reason{min-height:120px}
+.reason .tier{display:inline-block;font-size:11px;font-family:var(--mono);padding:2px 8px;border-radius:99px;background:var(--indigo-soft);color:var(--indigo);margin-bottom:6px}
+.reason .tier.t5,.reason .tier.t6{background:var(--bad-soft);color:var(--bad)}
+.reason .tier.ok{background:var(--good-soft);color:var(--good)}
+.reason p{margin:0 0 8px}
+.reason ol{margin:6px 0 8px;padding-left:20px;font-size:13px;color:var(--ink-2);max-height:180px;overflow:auto}
+.reason .acts{display:flex;gap:8px;flex-wrap:wrap}
+.muted{color:var(--ink-3);font-size:13px}
+.plist{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.pchip{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:6px 0 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;font-family:var(--mono);font-size:13px;line-height:1.2}
+.pchip small{font-size:10px;color:var(--ink-3)}
+.pchip.solved{background:var(--gold-soft);border-color:var(--gold)}
+.pchip.solved small{color:var(--ink-2)}
+.pchip.started{border-style:dashed;border-color:var(--ink-3)}
+.pchip[aria-current="true"]{box-shadow:inset 0 0 0 2px var(--ink)}
+.genrow{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.codebox{flex:1;min-width:0;font-family:var(--mono);font-size:12px;background:var(--ground);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+.opts{display:flex;flex-direction:column;gap:6px;font-size:14px}
+.opts label{display:flex;gap:8px;align-items:center;cursor:pointer}
+.opts input{accent-color:var(--indigo)}
+
+/* overlay card */
+.done{margin-top:14px;border:1px solid var(--gold);background:var(--gold-soft);border-radius:10px;padding:12px 14px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.done b{font-family:var(--display);font-weight:400;font-size:22px}
+.done .fig{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* progress view */
+.prog{display:grid;gap:16px}
+.ptable{width:100%;border-collapse:collapse;font-size:14px}
+.ptable th,.ptable td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.ptable th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600}
+.ptable td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+textarea{width:100%;min-height:70px;font-family:var(--mono);font-size:12px;background:var(--ground);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+.howto ol{margin:0;padding-left:20px}
+.howto li{margin-bottom:4px}
+.tiers{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.tiers dt{font-family:var(--mono);font-size:12px;color:var(--indigo);padding-top:2px}
+.tiers dd{margin:0}
+
+@media (max-width:900px){
+  .main{grid-template-columns:minmax(0,1fr)}
+  .levels{grid-template-columns:repeat(5,minmax(0,1fr))}
+}
+@media (max-width:560px){
+  .levels{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .brand h1{font-size:32px}
+  .boardcard{padding:10px}
+  .timer{font-size:22px}
+  .boardwrap{grid-template-columns:14px 1fr;grid-template-rows:14px 1fr}
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Star<span class="st">grid</span></h1>
+      <p>A star-placement logic puzzle. Every puzzle has exactly one solution, and it can be reached by reasoning alone, without guessing.</p>
+    </div>
+    <div class="topright">
+    <nav class="viewtabs" aria-label="View">
+      <button id="vPlay" aria-pressed="true">Play</button>
+      <button id="vProg" aria-pressed="false">Progress</button>
+      <button id="vHelp" aria-pressed="false">How to play</button>
+    </nav>
+    <button class="themebtn" id="bTheme" aria-pressed="false"></button>
+    </div>
+  </header>
+
+  <div class="levels" id="levels" role="group" aria-label="Difficulty"></div>
+
+  <section id="playView">
+    <div class="main">
+      <div class="boardcard">
+        <div class="boardhead">
+          <div>
+            <h2 id="ptitle">Puzzle</h2>
+            <div class="rule" id="prule"></div>
+          </div>
+          <div class="timer" id="timer" aria-live="off">00:00<small></small></div>
+        </div>
+        <div class="boardwrap" id="bwrap">
+          <div></div>
+          <div class="colnums" id="colnums"></div>
+          <div class="rownums" id="rownums"></div>
+          <div class="board" id="board" role="grid" aria-label="Puzzle grid"></div>
+        </div>
+        <div class="tools">
+          <div class="seg" role="group" aria-label="Tap places">
+            <button id="mCycle" aria-pressed="true" title="Tap cycles: blank, dot, star">Cycle</button>
+            <button id="mStar" aria-pressed="false" title="Tap toggles a star">Star</button>
+            <button id="mDot" aria-pressed="false" title="Tap toggles a dot">Dot</button>
+          </div>
+          <button class="btn" id="bUndo">Undo <span class="k">Z</span></button>
+          <button class="btn" id="bRedo">Redo <span class="k">Y</span></button>
+          <button class="btn" id="bClear">Restart</button>
+        </div>
+        <div class="tools">
+          <button class="btn gold" id="bHint" title="After a hint, the button rests for 30 seconds">Hint</button>
+          <button class="btn" id="bWhy">Check this mark</button>
+          <button class="btn" id="bCheck">Check board <span class="k">+15s</span></button>
+        </div>
+        <div id="doneCard" hidden></div>
+        <div id="clearConfirm" class="done" hidden style="border-color:var(--bad);background:var(--bad-soft)">
+          <span>Clear the board and reset the timer for this puzzle?</span>
+          <button class="btn primary" id="clearYes">Restart puzzle</button>
+          <button class="btn" id="clearNo">Keep playing</button>
+        </div>
+      </div>
+
+      <aside class="side">
+        <div class="panel reason" id="reason" aria-live="polite">
+          <h3>Reasoning</h3>
+          <div id="reasonBody"><p class="muted">Ask for a <b>Hint</b> to see the next logical step and why it holds. Select a cell you marked and press <b>Check this mark</b> to see whether it follows from the board.</p></div>
+        </div>
+        <div class="panel">
+          <h3 id="listTitle">Puzzles</h3>
+          <div class="plist" id="plist"></div>
+          <div class="genrow">
+            <button class="btn" id="bGen">Generate a new puzzle</button>
+            <span class="muted" id="genStatus"></span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Share a puzzle</h3>
+          <p class="muted" style="margin:0 0 8px">Give a friend this code so they play exactly the same grid. The code holds only the layout, not the answer.</p>
+          <div class="genrow" style="margin-top:0">
+            <input type="text" class="codebox" id="shareCode" readonly aria-label="Share code for this puzzle">
+            <button class="btn" id="bCopyCode">Copy</button>
+          </div>
+          <div class="genrow">
+            <input type="text" class="codebox" id="loadCode" placeholder="Paste a share code" aria-label="Share code to load">
+            <button class="btn" id="bLoad">Load</button>
+          </div>
+          <p class="muted" id="shareMsg" style="margin:6px 0 0"></p>
+        </div>
+        <div class="panel">
+          <h3>Options</h3>
+          <div class="opts">
+            <label><input type="checkbox" id="oAuto"> Auto-dot when a star is placed (its neighbours, row, column and region)</label>
+            <label><input type="checkbox" id="oLabels" checked> Show region letters</label>
+            <label><input type="checkbox" id="oErr" checked> Highlight broken rules</label>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="progView" hidden>
+    <div class="prog">
+      <div class="panel">
+        <h3>Your progress</h3>
+        <div class="scroll"><table class="ptable" id="ptable"></table></div>
+        <p class="muted" id="storeNote"></p>
+      </div>
+      <div class="panel">
+        <h3>Move progress to another browser</h3>
+        <p class="muted" style="margin-top:0">Copy this code, then paste it into Import on the other device.</p>
+        <textarea id="exportBox" readonly></textarea>
+        <div class="genrow"><button class="btn" id="bCopy">Copy code</button><span class="muted" id="copyMsg"></span></div>
+        <p class="muted">Import a code:</p>
+        <textarea id="importBox" placeholder="Paste a progress code here"></textarea>
+        <div class="genrow"><button class="btn" id="bImport">Import</button><span class="muted" id="importMsg"></span></div>
+        <div class="genrow"><button class="btn" id="bReset">Erase all progress</button>
+          <span id="resetConfirm" hidden><span class="muted">This cannot be undone.</span> <button class="btn primary" id="resetYes">Erase</button> <button class="btn" id="resetNo">Cancel</button></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="helpView" hidden>
+    <div class="prog">
+      <div class="panel howto">
+        <h3>Rules</h3>
+        <ol>
+          <li>Place stars so that every row, every column and every outlined region contains exactly one star.</li>
+          <li>Stars may not touch each other, including diagonally.</li>
+          <li>Mark cells you have ruled out with a dot. Dots are notes only; the puzzle is solved when all stars are placed correctly.</li>
+        </ol>
+      </div>
+      <div class="panel howto">
+        <h3>Controls</h3>
+        <ol>
+          <li>Tap a cell to cycle blank → dot → star. The Star and Dot modes make a tap toggle only that mark.</li>
+          <li>Drag across blank cells to dot them in one stroke. Right-click toggles a dot.</li>
+          <li>Keyboard: arrow keys move, <b>S</b> star, <b>D</b> or <b>X</b> dot, <b>Space</b> cycles, <b>Backspace</b> clears, <b>Z</b>/<b>Y</b> undo/redo.</li>
+          <li>Cells are named by row and column, for example R3C5 is row 3, column 5. Regions are lettered A, B, C… from the top-left.</li>
+        </ol>
+      </div>
+      <div class="panel">
+        <h3>How difficulty is rated</h3>
+        <p style="margin-top:0">Each puzzle is solved by a reasoning engine that always uses the simplest technique available. The rating depends on the hardest techniques it needed and how often it needed them.</p>
+        <dl class="tiers">
+          <dt>Basic</dt><dd>A row, column or region has exactly as many open cells as stars still needed.</dd>
+          <dt>Simple</dt><dd>One-cell lookahead: a star here would leave a neighbouring unit without room. Also a region confined to a single row or column.</dd>
+          <dt>Intermediate</dt><dd>Counting across two units: two regions that fit inside two rows own all the stars of those rows.</dd>
+          <dt>Advanced</dt><dd>The same counting argument across three or more units at once.</dd>
+          <dt>Contradiction</dt><dd>Assume a cell and follow forced steps (basic and simple only) until a rule breaks.</dd>
+          <dt>Deep contradiction</dt><dd>A contradiction chain that itself needs counting arguments along the way.</dd>
+        </dl>
+        <p class="muted">Hard puzzles need counting across two or more units. Expert puzzles need several contradiction chains. Insane puzzles (11×11) need 15 or more contradiction chains, some of them 3 to 5 forced steps long.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script id="engine">
+/* Star Battle engine: geometry, exact solution counter, human-style
+   deduction engine with explanations, difficulty grader, generator.
+   Runs in Node (module.exports) and in the browser / Web Worker (self.SBE). */
+(function (root) {
+  'use strict';
+
+  // ---------- utilities ----------
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function popcount(x) { let c = 0; while (x) { x &= x - 1; c++; } return c; }
+  function shuffle(a, rng) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  const LET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  // ---------- geometry ----------
+  function makeGeom(n, k, reg) {
+    const N = n * n, units = [], cellUnits = [], nbr = [];
+    for (let r = 0; r < n; r++) { const cells = []; for (let c = 0; c < n; c++) cells.push(r * n + c); units.push({ type: 'row', idx: r, cells }); }
+    for (let c = 0; c < n; c++) { const cells = []; for (let r = 0; r < n; r++) cells.push(r * n + c); units.push({ type: 'col', idx: c, cells }); }
+    for (let g = 0; g < n; g++) units.push({ type: 'region', idx: g, cells: [] });
+    for (let i = 0; i < N; i++) units[2 * n + reg[i]].cells.push(i);
+    for (let i = 0; i < N; i++) {
+      const r = (i / n) | 0, c = i % n;
+      cellUnits.push([r, n + c, 2 * n + reg[i]]);
+      const nb = [];
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        if (!dr && !dc) continue; const rr = r + dr, cc = c + dc;
+        if (rr >= 0 && rr < n && cc >= 0 && cc < n) nb.push(rr * n + cc);
+      }
+      nbr.push(nb);
+    }
+    return { n, k, N, reg, units, cellUnits, nbr };
+  }
+  function adj(G, a, b) { const n = G.n; return Math.abs(((a / n) | 0) - ((b / n) | 0)) <= 1 && Math.abs((a % n) - (b % n)) <= 1; }
+  function unitLabel(G, u) { const U = G.units[u]; return U.type === 'row' ? 'Row ' + (U.idx + 1) : U.type === 'col' ? 'Column ' + (U.idx + 1) : 'Region ' + LET[U.idx]; }
+  function cellLabel(G, c) { return 'R' + (((c / G.n) | 0) + 1) + 'C' + (c % G.n + 1); }
+  function plural(m, w) { return m + ' ' + w + (m === 1 ? '' : 's'); }
+  function listCells(G, cells, max) {
+    max = max || 6; const s = cells.slice(0, max).map(c => cellLabel(G, c)).join(', ');
+    return cells.length > max ? s + ' and ' + (cells.length - max) + ' more' : s;
+  }
+  function groupLabel(G, part, idxs) {
+    const names = { 0: ['Row', 'Rows'], 1: ['Column', 'Columns'], 2: ['Region', 'Regions'] }[part];
+    const lab = part === 2 ? idxs.map(i => LET[i]) : idxs.map(i => String(i + 1));
+    if (idxs.length === 1) return names[0] + ' ' + lab[0];
+    return names[1] + ' ' + lab.slice(0, -1).join(', ') + ' and ' + lab[lab.length - 1];
+  }
+
+  // Can `need` pairwise non-touching stars be placed among `cells`?
+  function canFit(G, cells, need) {
+    if (need <= 0) return true;
+    if (cells.length < need) return false;
+    if (need === 1) return true;
+    const L = cells.length, chosen = [];
+    function rec(start, m) {
+      if (m === 0) return true;
+      for (let i = start; i <= L - m; i++) {
+        const c = cells[i]; let ok = true;
+        for (let j = 0; j < chosen.length; j++) if (adj(G, c, chosen[j])) { ok = false; break; }
+        if (ok) { chosen.push(c); if (rec(i + 1, m - 1)) return true; chosen.pop(); }
+      }
+      return false;
+    }
+    return rec(0, need);
+  }
+  function unitInfo(G, s, u) {
+    let stars = 0; const unk = [];
+    const cells = G.units[u].cells;
+    for (let i = 0; i < cells.length; i++) { const v = s[cells[i]]; if (v === 1) stars++; else if (v === 0) unk.push(cells[i]); }
+    return { stars, unk, need: G.k - stars };
+  }
+  function unitFeasible(G, s, u) {
+    const I = unitInfo(G, s, u);
+    return I.need >= 0 && canFit(G, I.unk, I.need);
+  }
+  // Returns null if consistent, else {unit|cells, text}
+  function findContradiction(G, s) {
+    for (let i = 0; i < G.N; i++) if (s[i] === 1) for (const j of G.nbr[i]) if (j > i && s[j] === 1)
+      return { cells: [i, j], text: cellLabel(G, i) + ' and ' + cellLabel(G, j) + ' would both hold stars and touch' };
+    for (let u = 0; u < G.units.length; u++) {
+      const I = unitInfo(G, s, u);
+      if (I.need < 0) return { unit: u, text: unitLabel(G, u) + ' would have more than ' + plural(G.k, 'star') };
+      if (!canFit(G, I.unk, I.need)) return { unit: u, text: unitLabel(G, u) + ' would have no room for ' + (I.need === G.k ? 'its ' : 'its remaining ') + plural(I.need, 'star') };
+    }
+    return null;
+  }
+
+  // ---------- exact solution counter ----------
+  function countSolutions(n, k, reg, limit, fixed) {
+    limit = limit || 2;
+    const pats = [];
+    for (let m = 0; m < (1 << n); m++) if (popcount(m) === k && !(m & (m << 1))) pats.push(m);
+    const colCnt = new Int8Array(n), regCnt = new Int8Array(n);
+    // regRemain[r][g] = cells of region g in rows >= r
+    const regRemain = [];
+    for (let r = 0; r <= n; r++) { const a = new Int16Array(n); for (let rr = r; rr < n; rr++) for (let c = 0; c < n; c++) a[reg[rr * n + c]]++; regRemain.push(a); }
+    // per row: allowed mask (fixed empties excluded) and required mask (fixed stars)
+    const allow = [], req = [];
+    for (let r = 0; r < n; r++) {
+      let a = 0, q = 0;
+      for (let c = 0; c < n; c++) { const v = fixed ? fixed[r * n + c] : 0; if (v !== 2) a |= 1 << c; if (v === 1) q |= 1 << c; }
+      allow.push(a); req.push(q);
+    }
+    let count = 0; const sol = new Int32Array(n); let first = null;
+    function rec(r, prev) {
+      if (count >= limit) return;
+      if (r === n) {
+        for (let g = 0; g < n; g++) if (regCnt[g] !== k) return;
+        count++; if (!first) first = Array.from(sol); return;
+      }
+      const remRows = n - r;
+      for (let c = 0; c < n; c++) { const need = k - colCnt[c]; if (need > Math.ceil(remRows / 2)) return; }
+      for (let g = 0; g < n; g++) if (k - regCnt[g] > regRemain[r][g]) return;
+      const forbid = prev | (prev << 1) | (prev >> 1);
+      for (let pi = 0; pi < pats.length; pi++) {
+        const p = pats[pi];
+        if (p & forbid) continue; if ((p & allow[r]) !== p) continue; if ((p & req[r]) !== req[r]) continue;
+        let ok = true;
+        for (let c = 0; c < n; c++) if (p >> c & 1) { if (colCnt[c] >= k || regCnt[reg[r * n + c]] >= k) { ok = false; break; } }
+        if (!ok) continue;
+        for (let c = 0; c < n; c++) if (p >> c & 1) { colCnt[c]++; regCnt[reg[r * n + c]]++; }
+        sol[r] = p; rec(r + 1, p);
+        for (let c = 0; c < n; c++) if (p >> c & 1) { colCnt[c]--; regCnt[reg[r * n + c]]--; }
+        if (count >= limit) return;
+      }
+    }
+    rec(0, 0);
+    let solution = null;
+    if (first) { solution = new Int8Array(n * n); for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (first[r] >> c & 1) solution[r * n + c] = 1; }
+    return { count, solution };
+  }
+
+  // ---------- deduction engine ----------
+  // Cell states: 0 unknown, 1 star, 2 empty.
+  // Tiers: 0 trivial, 1 basic, 2 simple, 3 intermediate, 4 advanced, 5 contradiction chain (short), 6 contradiction chain (deep)
+  const TIER_NAMES = ['Trivial', 'Basic', 'Simple', 'Intermediate', 'Advanced', 'Contradiction', 'Deep contradiction'];
+
+  function simStar(G, s, x) {
+    const t = s.slice(); t[x] = 1;
+    for (const j of G.nbr[x]) { if (t[j] === 1) return null; t[j] = 2; }
+    for (const u of G.cellUnits[x]) {
+      const cells = G.units[u].cells; let st = 0;
+      for (const c of cells) if (t[c] === 1) st++;
+      if (st > G.k) return null;
+      if (st === G.k) for (const c of cells) if (t[c] === 0) t[c] = 2;
+    }
+    return t;
+  }
+  function failingUnit(G, t) {
+    for (let u = 0; u < G.units.length; u++) if (!unitFeasible(G, t, u)) return u;
+    return -1;
+  }
+
+  function stepTrivial(G, s) {
+    for (let i = 0; i < G.N; i++) if (s[i] === 1) {
+      const e = G.nbr[i].filter(j => s[j] === 0);
+      if (e.length) return { tier: 0, kind: 'touch', set: e.map(c => [c, 2]), cells: [i], units: [],
+        text: 'Stars cannot touch, so the cells around the star at ' + cellLabel(G, i) + ' are empty: ' + listCells(G, e) + '.' };
+    }
+    for (let u = 0; u < G.units.length; u++) {
+      const I = unitInfo(G, s, u);
+      if (I.need === 0 && I.unk.length) return { tier: 0, kind: 'full', set: I.unk.map(c => [c, 2]), cells: [], units: [u],
+        text: unitLabel(G, u) + ' already has its ' + plural(G.k, 'star') + ', so its other cells are empty.' };
+    }
+    return null;
+  }
+  function stepBasic(G, s) {
+    for (let u = 0; u < G.units.length; u++) {
+      const I = unitInfo(G, s, u);
+      if (I.need > 0 && I.unk.length === I.need) {
+        let ok = true; for (let a = 0; a < I.unk.length; a++) for (let b = a + 1; b < I.unk.length; b++) if (adj(G, I.unk[a], I.unk[b])) ok = false;
+        if (ok) return { tier: 1, kind: 'exact', set: I.unk.map(c => [c, 1]), cells: I.unk.slice(), units: [u],
+          text: unitLabel(G, u) + ' needs ' + plural(I.need, 'more star') + ' and has exactly ' + plural(I.unk.length, 'open cell') + ' left (' + listCells(G, I.unk) + '), so ' + (I.unk.length === 1 ? 'it holds a star' : 'each holds a star') + '.' };
+      }
+    }
+    return null;
+  }
+  function stepLookahead(G, s) {
+    // elimination: a star at x leaves some unit unable to fit its stars
+    for (let x = 0; x < G.N; x++) if (s[x] === 0) {
+      const t = simStar(G, s, x);
+      if (!t) return { tier: 2, kind: 'look-star', set: [[x, 2]], cells: [x], units: [], text: 'A star at ' + cellLabel(G, x) + ' would break a rule immediately, so it is empty.' };
+      const u = failingUnit(G, t);
+      if (u >= 0) {
+        const I = unitInfo(G, s, u);
+        return { tier: 2, kind: 'look-star', set: [[x, 2]], cells: [x], units: [u],
+          text: 'A star at ' + cellLabel(G, x) + ' would block too many cells of ' + unitLabel(G, u) + ': it needs ' + plural(I.need, 'star') + ' and could no longer fit ' + (I.need === 1 ? 'it' : 'them') + '. So ' + cellLabel(G, x) + ' is empty.' };
+      }
+    }
+    // forcing: without x some unit cannot fit its stars
+    for (let x = 0; x < G.N; x++) if (s[x] === 0) {
+      const t = s.slice(); t[x] = 2;
+      for (const u of G.cellUnits[x]) if (!unitFeasible(G, t, u)) {
+        const I = unitInfo(G, s, u);
+        return { tier: 2, kind: 'look-empty', set: [[x, 1]], cells: [x], units: [u],
+          text: unitLabel(G, u) + ' needs ' + plural(I.need, 'more star') + '. Its open cells can only hold ' + (I.need === 1 ? 'it' : 'them') + ' without touching if ' + cellLabel(G, x) + ' is used, so ' + cellLabel(G, x) + ' holds a star.' };
+      }
+    }
+    return null;
+  }
+
+  // Confinement (pigeonhole) between two partitions: rows(0), cols(1), regions(2).
+  function unitOfPart(G, c, p) { return p === 0 ? ((c / G.n) | 0) : p === 1 ? c % G.n : G.reg[c]; }
+  function stepConfinement(G, s, minSize, maxSize) {
+    const n = G.n;
+    const need = [[], [], []], mask = [[[], [], []], [[], [], []], [[], [], []]];
+    for (let p = 0; p < 3; p++) for (let i = 0; i < n; i++) {
+      const I = unitInfo(G, s, p * n + i); need[p][i] = I.need;
+      for (let q = 0; q < 3; q++) { let m = 0; for (const c of I.unk) m |= 1 << unitOfPart(G, c, q); mask[p][q][i] = m; }
+    }
+    let best = null;
+    for (let A = 0; A < 3; A++) for (let B = 0; B < 3; B++) {
+      if (A === B) continue;
+      const active = []; for (let i = 0; i < n; i++) if (need[A][i] > 0) active.push(i);
+      const m = active.length; if (m === 0) continue;
+      const full = 1 << m; const uni = new Int32Array(full); const cnt = new Int8Array(full);
+      for (let S = 1; S < full; S++) {
+        const lb = S & -S, bi = 31 - Math.clz32(lb);
+        uni[S] = uni[S ^ lb] | mask[A][B][active[bi]]; cnt[S] = cnt[S ^ lb] + 1;
+        const size = cnt[S];
+        if (size < minSize || size > maxSize) continue;
+        if (best && size >= best.size) continue;
+        let needS = 0, Sm = 0; for (let b = 0; b < m; b++) if (S >> b & 1) { needS += need[A][active[b]]; Sm |= 1 << active[b]; }
+        let needU = 0; const U = uni[S]; for (let j = 0; j < n; j++) if (U >> j & 1) needU += need[B][j];
+        if (needS > needU) {
+          const Sidx = [], Uidx = []; for (let j = 0; j < n; j++) { if (Sm >> j & 1) Sidx.push(j); if (U >> j & 1) Uidx.push(j); }
+          best = { size, contradiction: true, units: Sidx.map(i => A * n + i).concat(Uidx.map(i => B * n + i)),
+            text: groupLabel(G, A, Sidx) + ' need ' + plural(needS, 'more star') + ' but all their open cells lie in ' + groupLabel(G, B, Uidx) + ', which only take ' + needU + ' more' };
+          continue;
+        }
+        if (needS !== needU) continue;
+        const elim = [];
+        for (let c = 0; c < G.N; c++) if (s[c] === 0 && (U >> unitOfPart(G, c, B) & 1) && !(Sm >> unitOfPart(G, c, A) & 1)) elim.push(c);
+        if (!elim.length) continue;
+        const Sidx = [], Uidx = []; for (let j = 0; j < n; j++) { if (Sm >> j & 1) Sidx.push(j); if (U >> j & 1) Uidx.push(j); }
+        const tier = size === 1 ? 2 : size === 2 ? 3 : 4;
+        const sv = Sidx.length === 1, uv = Uidx.length === 1;
+        best = { size, tier, kind: 'confine', set: elim.map(c => [c, 2]), cells: [], units: Sidx.map(i => A * n + i).concat(Uidx.map(i => B * n + i)),
+          text: groupLabel(G, A, Sidx) + ' still ' + (sv ? 'needs ' : 'need ') + plural(needS, 'star') + ', and ' + (sv ? 'its' : 'their') + ' open cells all lie inside ' + groupLabel(G, B, Uidx) + ', which ' + (uv ? 'needs' : 'need') + ' exactly ' + needU + ' more. So every remaining star of ' + groupLabel(G, B, Uidx) + ' comes from ' + groupLabel(G, A, Sidx) + ', and the other open cells there are empty: ' + listCells(G, elim) + '.' };
+      }
+    }
+    return best;
+  }
+
+  function applyStep(s, step) { for (const [c, v] of step.set) s[c] = v; }
+
+  // Propagate with deductions up to maxTier (no trials). Returns {contra, steps, chain, reason}
+  function propagate(G, s, maxTier, budget, wantChain) {
+    let steps = 0; const chain = [];
+    for (;;) {
+      const ct = findContradiction(G, s);
+      if (ct) return { contra: true, steps, chain, reason: ct };
+      const st = findStep(G, s, { maxTier, noTrials: true });
+      if (!st) return { contra: false, steps, chain };
+      if (st.contradiction) return { contra: true, steps, chain, reason: st };
+      applyStep(s, st);
+      if (st.tier > 0) steps++;
+      if (wantChain && st.tier > 0) chain.push(st);
+      if (steps > budget) return { contra: false, steps, chain, aborted: true };
+    }
+  }
+
+  function describeSet(G, set) {
+    const stars = set.filter(x => x[1] === 1).map(x => x[0]), emp = set.filter(x => x[1] === 2).map(x => x[0]);
+    const parts = [];
+    if (stars.length) parts.push('star' + (stars.length > 1 ? 's' : '') + ' at ' + listCells(G, stars, 4));
+    if (emp.length) parts.push(listCells(G, emp, 4) + ' empty');
+    return parts.join('; ');
+  }
+
+  function stepTrial(G, s, innerTier, tier) {
+    let best = null;
+    for (let x = 0; x < G.N; x++) if (s[x] === 0) {
+      for (const v of [1, 2]) {
+        const t = s.slice(); t[x] = v;
+        const budget = best ? best.len - 1 : 60;
+        const res = propagate(G, t, innerTier, budget, false);
+        if (res.contra && (!best || res.steps < best.len)) best = { x, v, len: res.steps };
+      }
+    }
+    if (!best) return null;
+    // rebuild the chain for the explanation
+    const t = s.slice(); t[best.x] = best.v;
+    const res = propagate(G, t, innerTier, 200, true);
+    const verb = best.v === 1 ? 'a star' : 'no star';
+    const lines = res.chain.map(st => describeSet(G, st.set) + ' (' + TIER_NAMES[st.tier].toLowerCase() + ')');
+    const reason = res.reason ? (res.reason.text || '').replace(/\.$/, '') : 'a rule would break';
+    return { tier, kind: 'trial', set: [[best.x, best.v === 1 ? 2 : 1]], cells: [best.x], units: res.reason && res.reason.unit !== undefined ? [res.reason.unit] : (res.reason && res.reason.units) || [],
+      chainLen: best.len, chain: lines,
+      text: 'Suppose ' + cellLabel(G, best.x) + ' had ' + verb + '. Following only forced steps (' + plural(best.len, 'step') + '), ' + reason + '. So ' + cellLabel(G, best.x) + (best.v === 1 ? ' is empty.' : ' holds a star.') };
+  }
+
+  // opts: {maxTier, noTrials}
+  function findStep(G, s, opts) {
+    opts = opts || {}; const maxTier = opts.maxTier === undefined ? 6 : opts.maxTier;
+    let st = stepTrivial(G, s); if (st) return st;
+    if (maxTier >= 1) { st = stepBasic(G, s); if (st) return st; }
+    if (maxTier >= 2) {
+      st = stepConfinement(G, s, 1, 1); if (st) return st;
+      st = stepLookahead(G, s); if (st) return st;
+    }
+    if (maxTier >= 3) { st = stepConfinement(G, s, 2, 2); if (st) return st; }
+    if (maxTier >= 4) { st = stepConfinement(G, s, 3, G.n - 1); if (st) return st; }
+    if (opts.noTrials) return null;
+    if (maxTier >= 5) { st = stepTrial(G, s, 2, 5); if (st) return st; }
+    if (maxTier >= 6) { st = stepTrial(G, s, 4, 6); if (st) return st; }
+    return null;
+  }
+
+  // ---------- grading ----------
+  function grade(G, maxTier) {
+    const s = new Int8Array(G.N); const counts = [0, 0, 0, 0, 0, 0, 0]; let trialLen = 0, maxChain = 0, steps = 0;
+    for (;;) {
+      const st = findStep(G, s, { maxTier: maxTier === undefined ? 6 : maxTier });
+      if (!st) break;
+      if (st.contradiction) return { solved: false, bad: true };
+      applyStep(s, st); counts[st.tier]++; if (st.tier > 0) steps++;
+      if (st.kind === 'trial') { trialLen += st.chainLen; maxChain = Math.max(maxChain, st.chainLen); }
+    }
+    let solved = true; for (let i = 0; i < G.N; i++) if (s[i] === 0) solved = false;
+    let maxT = 0; for (let t = 0; t < 7; t++) if (counts[t]) maxT = t;
+    const score = counts[1] * 0.2 + counts[2] * 1 + counts[3] * 3 + counts[4] * 6 + counts[5] * 12 + counts[6] * 25 + trialLen * 0.5;
+    return { solved, counts, maxTier: maxT, score: Math.round(score * 10) / 10, trialLen, maxChain, steps, final: Array.from(s) };
+  }
+
+  // ---------- generator ----------
+  function randomSolution(n, k, rng) {
+    const pats = [];
+    for (let m = 0; m < (1 << n); m++) if (popcount(m) === k && !(m & (m << 1))) pats.push(m);
+    const col = new Int8Array(n), rows = [];
+    let nodes = 0;
+    function rec(r, prev) {
+      if (++nodes > 20000) return false;
+      if (r === n) return true;
+      const rem = n - r;
+      for (let c = 0; c < n; c++) if (k - col[c] > Math.ceil(rem / 2)) return false;
+      const order = shuffle(pats.slice(), rng);
+      const forbid = prev | (prev << 1) | (prev >> 1);
+      for (const p of order) {
+        if (p & forbid) continue; let ok = true;
+        for (let c = 0; c < n; c++) if (p >> c & 1 && col[c] >= k) { ok = false; break; }
+        if (!ok) continue;
+        for (let c = 0; c < n; c++) if (p >> c & 1) col[c]++;
+        rows[r] = p; if (rec(r + 1, p)) return true;
+        for (let c = 0; c < n; c++) if (p >> c & 1) col[c]--;
+      }
+      return false;
+    }
+    for (let a = 0; a < 50; a++) { nodes = 0; col.fill(0); if (rec(0, 0)) break; }
+    const sol = new Int8Array(n * n);
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (rows[r] >> c & 1) sol[r * n + c] = 1;
+    return sol;
+  }
+  function orthNbrs(n, i) { const r = (i / n) | 0, c = i % n, o = []; if (r > 0) o.push(i - n); if (r < n - 1) o.push(i + n); if (c > 0) o.push(i - 1); if (c < n - 1) o.push(i + 1); return o; }
+  function growRegions(n, seeds, rng) {
+    const N = n * n, lab = new Int16Array(N).fill(-1);
+    seeds.forEach((c, i) => { lab[c] = i; });
+    let left = N - seeds.length;
+    while (left > 0) {
+      const c = Math.floor(rng() * N); if (lab[c] >= 0) continue;
+      const nb = orthNbrs(n, c).filter(j => lab[j] >= 0); if (!nb.length) continue;
+      lab[c] = lab[nb[Math.floor(rng() * nb.length)]]; left--;
+    }
+    return lab;
+  }
+  function initRegions(n, k, sol, rng) {
+    const stars = []; for (let i = 0; i < n * n; i++) if (sol[i]) stars.push(i);
+    const lab = growRegions(n, stars, rng);
+    if (k === 1) return Array.from(lab);
+    // k=2: pair up adjacent half-regions with a random perfect matching
+    const m = stars.length, adjm = []; for (let i = 0; i < m; i++) adjm.push(new Set());
+    for (let i = 0; i < n * n; i++) for (const j of orthNbrs(n, i)) if (lab[i] !== lab[j]) adjm[lab[i]].add(lab[j]);
+    const mate = new Int16Array(m).fill(-1); let tries = 0;
+    function rec() {
+      if (++tries > 5000) return false;
+      let a = -1; for (let i = 0; i < m; i++) if (mate[i] < 0) { a = i; break; }
+      if (a < 0) return true;
+      const cand = shuffle(Array.from(adjm[a]).filter(b => mate[b] < 0), rng);
+      for (const b of cand) { mate[a] = b; mate[b] = a; if (rec()) return true; mate[a] = -1; mate[b] = -1; }
+      return false;
+    }
+    if (!rec()) return null;
+    const gid = new Int16Array(m).fill(-1); let g = 0;
+    for (let i = 0; i < m; i++) if (gid[i] < 0) { gid[i] = g; gid[mate[i]] = g; g++; }
+    return Array.from(lab).map(l => gid[l]);
+  }
+  function connectedWithout(n, reg, g, skip) {
+    let start = -1, total = 0;
+    for (let i = 0; i < n * n; i++) if (reg[i] === g && i !== skip) { total++; if (start < 0) start = i; }
+    if (total === 0) return false;
+    const seen = new Uint8Array(n * n), st = [start]; seen[start] = 1; let cnt = 1;
+    while (st.length) { const c = st.pop(); for (const j of orthNbrs(n, c)) if (!seen[j] && j !== skip && reg[j] === g) { seen[j] = 1; cnt++; st.push(j); } }
+    return cnt === total;
+  }
+  // Region cells relabelled so region A is the one containing the top-left cell, etc.
+  function canonical(reg) {
+    const map = new Map(); let nx = 0; return reg.map(g => { if (!map.has(g)) map.set(g, nx++); return map.get(g); });
+  }
+  function generateUnique(n, k, rng, opts) {
+    opts = opts || {}; const maxIter = opts.maxIter || 4000, cap = opts.cap || 60;
+    for (let attempt = 0; attempt < 200; attempt++) {
+      const sol = randomSolution(n, k, rng);
+      let reg = initRegions(n, k, sol, rng); if (!reg) continue;
+      let cnt = countSolutions(n, k, reg, cap).count;
+      for (let it = 0; it < maxIter && cnt > 1; it++) {
+        const c = Math.floor(rng() * n * n); if (sol[c]) continue;
+        const A = reg[c]; const nb = orthNbrs(n, c).map(j => reg[j]).filter(g => g !== A); if (!nb.length) continue;
+        const B = nb[Math.floor(rng() * nb.length)];
+        if (!connectedWithout(n, reg, A, c)) continue;
+        reg[c] = B;
+        const nc = countSolutions(n, k, reg, cap).count;
+        if (nc <= cnt || rng() < 0.03) cnt = nc; else reg[c] = A;
+      }
+      if (cnt === 1) return { reg: canonical(reg), sol: Array.from(sol) };
+    }
+    return null;
+  }
+  // Hill-climb on difficulty while keeping a unique solution.
+  function harden(n, k, reg, sol, rng, iters, targetFn, timeMs) {
+    const t0 = Date.now();
+    reg = reg.slice(); let G = makeGeom(n, k, reg), gr = grade(G);
+    let bestScore = gr.solved ? gr.score : -1;
+    for (let it = 0; it < iters; it++) {
+      if (targetFn && gr.solved && targetFn(gr)) break;
+      if (timeMs && Date.now() - t0 > timeMs) break;
+      const c = Math.floor(rng() * n * n); if (sol[c]) continue;
+      const A = reg[c]; const nb = orthNbrs(n, c).map(j => reg[j]).filter(g => g !== A); if (!nb.length) continue;
+      const B = nb[Math.floor(rng() * nb.length)];
+      if (!connectedWithout(n, reg, A, c)) continue;
+      reg[c] = B;
+      if (countSolutions(n, k, reg, 2).count !== 1) { reg[c] = A; continue; }
+      const G2 = makeGeom(n, k, reg), g2 = grade(G2);
+      if (g2.solved && g2.score >= bestScore) { bestScore = g2.score; gr = g2; } else reg[c] = A;
+    }
+    reg = canonical(reg);
+    return { reg, grade: grade(makeGeom(n, k, reg)) };
+  }
+
+  const API = { mulberry32, makeGeom, countSolutions, findStep, findContradiction, applyStep, grade, generateUnique, harden, canonical,
+    cellLabel, unitLabel, TIER_NAMES, unitInfo };
+  if (typeof module !== 'undefined' && module.exports) module.exports = API; else root.SBE = API;
+})(typeof self !== 'undefined' ? self : this);
+
+</script>
+<script>
+const INVENTORY = {"easy":[{"n":6,"k":1,"reg":"AAABBBAAAAABAAAAACDDEEEEDDEEEEDFEEEE","sol":"000010001000000001100000000100010000","score":2.2},{"n":6,"k":1,"reg":"ABBBBBAAACCCDDACCEDDAAFEDDDDEEDDDEEE","sol":"010000000001001000000010100000000100","score":2.2},{"n":6,"k":1,"reg":"AABBBBBBBCCDBBBBCDEEEBDDEFEEEDEEEEDD","sol":"100000000010001000000001010000000100","score":2.2},{"n":6,"k":1,"reg":"AAAABBAAAABCDDBBBCDDDBEFDDEEEFDDEEFF","sol":"010000000001000100100000001000000010","score":2.2},{"n":6,"k":1,"reg":"ABCCCCACCCDDAADCDDEADDDFEEEEFFEEEEFF","sol":"010000000100100000000010001000000001","score":2.2},{"n":6,"k":1,"reg":"ABBCCCACCCCCADCCCCDDCCCCDDCEEEDDDFEE","sol":"001000100000000010010000000001000100","score":3.2},{"n":6,"k":1,"reg":"ABBCCCBBCCCCBBBBCCDDBEFCDDBEFCDBBECC","sol":"100000000001001000000010010000000100","score":3.2},{"n":6,"k":1,"reg":"ABBBCCAADBBCDDDDCCDDDCCCEEDDCCEEFFCC","sol":"100000000010001000000001010000000100","score":3.2},{"n":6,"k":1,"reg":"AABCCCAAAACCDAAAACDEEECCDDDDCFDDDCCC","sol":"001000000010010000000100000001100000","score":3.2},{"n":6,"k":1,"reg":"AABBBCAABBBBAADBBBAADBBBEAABBBEEFFFB","sol":"000001010000000010001000100000000100","score":4.2},{"n":6,"k":1,"reg":"AAAAAABBACDEBAACEEBAACEEBBFCEEBBFFFE","sol":"010000000010100000000100000001001000","score":4.2},{"n":6,"k":1,"reg":"AAAAAAAABCDDEEBCFDEEECFCCEECCCCCCCCC","sol":"100000000001001000000010010000000100","score":4.2},{"n":6,"k":1,"reg":"AABBBBACCCBBADDDEBADDBBBADDDBDFFDDDD","sol":"000001001000000010100000000100010000","score":5.2},{"n":6,"k":1,"reg":"AAAABBCDDABBCDDBBBCEEBBBEEFFBBFFFFFB","sol":"000100100000001000000001010000000010","score":5.2},{"n":6,"k":1,"reg":"ABBBBBBBBBBCBBBBBBDDDBBBEDDFFFEEEEEE","sol":"100000000001000100010000000010001000","score":5.2}],"medium":[{"n":8,"k":1,"reg":"AAAABCCCABBBBDCCEDDDDDDCEDDFFDFFEFFFFFFFEFFGGFGGHFFGFFGGHHGGGGGG","sol":"0010000000001000000000010000010000010000100000000000001001000000","score":6.6},{"n":8,"k":1,"reg":"AABCCCCDAAACDDDDAACCDDEEAACDDFFGAACCDDFGAGGGDDFGAAHGGDDGAHHHGGGG","sol":"0010000000000100000000011000000000010000000000100000100001000000","score":6.6},{"n":8,"k":1,"reg":"AAAAAAABCAADAAAECDDDFAAEDDFDFAEEDDFFFAAEDFFGEAEEDGHGEEEGDGGGGGGG","sol":"0000000110000000000001000100000000010000000000100010000000001000","score":7.6},{"n":8,"k":1,"reg":"AAAABBCDEAACCCCDEACCDCCDEACDDDDDECCCCDCCEFCGCDDCFFHHCCCCFFHHHCCC","sol":"0000010000100000000000011000000000000010000100000100000000001000","score":8.6},{"n":8,"k":1,"reg":"AAABBBCCAABBBBCCAADDCBBCEEECCCCCEEECFCCCEECCGGGCEEEEGGCCGGGGGGGH","sol":"0001000010000000001000000000001000001000010000000000010000000001","score":8.6},{"n":8,"k":1,"reg":"ABCCCCCCABCCDDDDAACDDCDDECCCCCCDECCFFGGHEEEEFFGGEEFEEFFGEEFFFFGG","sol":"0100000000001000100000000010000000000001000001000001000000000010","score":8.6},{"n":8,"k":1,"reg":"ABBBBBBCDBEEEECCDBBBBEECDDBEEEEEBBBEEEFFBEEEEFFFGEEHHFFFGGGGHHHF","sol":"1000000000000010000100000100000000000100000000010000100000100000","score":9.6},{"n":8,"k":1,"reg":"AAAAABBBCCBBAAABCCDBBABBCCBBBABECCCCBBBECFCBBGBHFFBBBHHHFFFBHHHH","sol":"0001000010000000001000000000100000000001000001000100000000000010","score":12.6},{"n":8,"k":1,"reg":"AAABBBBCAAADDEECAAAAAECCFAEEEEECFAAGGEECFGAAGGCCFGAGGGGCGGGGHGGC","sol":"0000001000010000000001001000000000100000000000010100000000001000","score":12.6},{"n":8,"k":1,"reg":"AAABCDDDAAACCCCDAEECCCCCAEEFFCCFGEHHFFFFGEEHHHFFGGEHHFFFGGHHHHHH","sol":"0001000000000001000001001000000000000010001000000000100001000000","score":12.6},{"n":8,"k":1,"reg":"ABBBBBCCBBBDBCCCDDBDDDCCDDBBDDCCEDDDDECFEDEEEECCEDEGEHHCEEEGEHHC","sol":"1000000000001000000000100100000000000001001000000000010000010000","score":13.6},{"n":8,"k":1,"reg":"AABBBAACAABBAADCAAAAAADCAEEEEADCEEFEEDDCEEFDDDCCEFFFGDGGFFFHGGGG","sol":"0000100010000000000000010100000000000100001000000000001000010000","score":13.6},{"n":8,"k":1,"reg":"ABBBCCDDAAABCCCCAABBBBCEAABBBEEEAFBBBEEEAGBGBEEEGGGGEEGEGGHGGGGG","sol":"0000000110000000000000100000100001000000000100000000010000100000","score":14.6},{"n":8,"k":1,"reg":"AABBBBBBABBBBBBBCDDDBBBBCCDDDDBBCEEEDDBBCEEEEEBFCGGEEEEFCCEEEHHF","sol":"0100000000001000100000000000010000010000000000010010000000000010","score":16.6},{"n":8,"k":1,"reg":"AABBCCCCAAABDDECABBBFEECBBBFFFECBGBBBFEEGGGBEEEEGGGBEEEEHHEEEEEE","sol":"0100000000001000000000010000010000010000000000100010000010000000","score":31.6}],"hard":[{"n":9,"k":1,"reg":"AAAAABBBBAAAABBBCCDEEAABBBFEEAAABBFFEAABBBFFFEAEBGGFHFEEEEGFFHFEEEEIIFFFEEIIIIIII","sol":"000001000000000001100000000001000000000000100000010000000000010010000000000100000","score":20.8},{"n":9,"k":1,"reg":"AAABBCDDBAAABCCDDBAABBBEEDBAAABBEEEBAFBBBBBEBFFFGBBBEBFHFGBBBEBFHGGGBBBBHHHHGGBII","sol":"000000010000010000000000100001000000000001000100000000000100000010000000000000001","score":20.8},{"n":9,"k":1,"reg":"AAAAAAAAAAABBAAACCADBAABACCEEBBBBBBCEFFBBFFBCEEFFFGFFCHEEEFGFCCHHEIFFFCFHHHIIIFFF","sol":"000000100000000001010000000000000010001000000000001000000100000100000000000010000","score":21.8},{"n":9,"k":1,"reg":"AAABCCCCCAABBCDCCCAAAACDDCCAEAFFFDDCAEAFCCCCCAEFFFFFFCEEGFHFFFCEGGHHGGFCIIGGGGGGG","sol":"000100000000001000001000000000000001010000000000000010000010000000000100100000000","score":21.8},{"n":9,"k":1,"reg":"AAAAAAAABACCCBABBBADDDBBBDEAAFDBDBDEAFFDDDDDEAGGHHDDEEAAGIIIEEEAAGIIEEEEAGGGIIEEE","sol":"000000001000100000100000000000000010010000000000010000000000100001000000000001000","score":21.8},{"n":9,"k":1,"reg":"AAAAABBCCAADAAABBCAADDDEEBBDDDDDDEFFDDDGGGFFFHDDDDGFGFHHGGGGGGFHIGIGGGGFHIIIIGGFF","sol":"000001000000000001010000000000000100000010000001000000100000000000100000000000010","score":23.8},{"n":9,"k":1,"reg":"AABCCCCDDBBBEEECFDBFBBCCCFDBFBBCFFFDBFFFFFGFFFFFHHFGGFFHHHGGGFFFFFHHHGGFIIIHGGGGF","sol":"010000000000010000000000100000000001100000000000001000000100000000000010001000000","score":23.8},{"n":9,"k":1,"reg":"AAAAAAABBCAADDAABECADDDBBBEAADFDDDBEFAFFDDDGGFFFFFDGGGFHHHFFGIGFFFHHHGIGHHHHHHGGG","sol":"001000000100000000000001000000000001000010000010000000000000010000100000000000100","score":25.3},{"n":9,"k":1,"reg":"ABBAAAAAAAAAACCCCAAACCCAAAACACAAAADDCCCEEFDDDCECEFFFDDEECEGGGGDEEEEEHHDDIIHHHHHHH","sol":"001000000000000001000100000000000010000001000010000000000010000000000100100000000","score":25.8},{"n":9,"k":1,"reg":"AABBCCCDDBBBCCDCCDBEEECDDCDFFGEDDCCDFGGDDDDDDFFGGGGGGDFFGHGIIIDFFGHGIHIDGGGHHHHHD","sol":"100000000001000000000000010000100000000000001000010000000000100010000000000001000","score":25.8},{"n":9,"k":1,"reg":"AAABBBCCCAAAAABCBCAAAAABBBDAEAAAAAAFEEAAAFFFFEEAAAFGFFEEHGGFGFGEHHGGGGFGEHHIGGGGG","sol":"000000010000001000000000001001000000000000100100000000000010000010000000000100000","score":34.3},{"n":9,"k":1,"reg":"AABBBBCCDACCBBBCCCAECCCCCCCEECEECFFCEEEEEFFCCEEGGGGFCCEEGHGFFFFEEGFFFIIIEEGGIIIII","sol":"000000001000010000100000000000001000010000000000000100000100000000000010001000000","score":34.8},{"n":9,"k":1,"reg":"ABBCCCCDDAEEEECDDDAEAFECCCDAAAEEEECDAEEEDDDDDAAAEEDGDHAIAAADGDHAIIIADDDHAAIIIIIII","sol":"010000000000001000000100000100000000000000010000010000000000100000000001001000000","score":48.8},{"n":9,"k":1,"reg":"AAAAAABCCDAEAEEBEEAAEEEBBEEAEEEEEEEEAAAFFFEEEGAAHFFEEEGGGHHFFFFGIIIHFIFFGGIIIIIIF","sol":"000000001100000000000000100000100000010000000000001000001000000000010000000000010","score":51.8},{"n":9,"k":1,"reg":"AAAAAAAAABBBBCADDABCCCCAADABEFCCCADAEEFCCCADDEFFFFFGGDEFFEHFGDDEFFEHHGIDEEEEEGGGD","sol":"000000100100000000000100000010000000000000001001000000000010000000000010000001000","score":61.8}],"expert":[{"n":10,"k":1,"reg":"AAAABBBBBBAACBBDBBBBACCDDDBEEBADDDEEBEBBAADDEEBEEEAAFFGEEEEEAHHGGGIIIEHHHGIGIIEEHGHGIIIEEEHGGGIIJJEE","sol":"0000000001001000000000001000000000000100010000000000010000000000000010000001000010000000000000001000","score":70},{"n":10,"k":1,"reg":"AAAAAABBCCAAAADABBBBAAADDAAABBAAEEDAAABFAAEAAAABBFAEEEEAABBFAAGGEEABFFHHGIEEEEEFGGGIIIJEEFIIIIJJJEEE","sol":"0000000010000001000000010000000000000001000000010000001000000010000000100000000000000010000100000000","score":72.5},{"n":10,"k":1,"reg":"AAAAABBBCCAAAAABDBBBAEEAABDFFBAEEABBBFFGAHEEEGBBBGAHEGEGGGGGIHEGGGGJGGIEEEGJJJJJIIIIGIJJIJIIIIIIIIIJ","sol":"0000000001000000100000000000100000100000100000000000000100000100000000000100000000000001000010000000","score":74.5},{"n":10,"k":1,"reg":"AAAABBBCDDAACCCBCCCDAEFFCCCCCDAEFFFFFCCCEEFCCCCCGCHEFFCCGGGCHEGIIGGCCCHEGGGGGGCCEEEGGJGGCCGGGGJJCCCC","sol":"0010000000000001000000000000010000001000010000000000000001000001000000100000000000000000100000100000","score":78},{"n":10,"k":1,"reg":"ABBCCDDDDDACCCCDEDDDACCCEEEDFFAAGCEEDDDDHHGCEEEDDDHHCCCEEEDEHCCICCJEEEHHIIHHJJJEHHHIHJJEJEHHHHHJJEEE","sol":"0100000000000000010000000000011000000000001000000000001000000000000010000001000000010000000000001000","score":81.5},{"n":10,"k":1,"reg":"AAAAABBBBBAAACDDBBEBACACCDDBEBACCCBBBBEBAAAABBBEEBAABBBBBEFFAAAGGHEEFEAIIEGHEEEEAAIEEHEEJJIIIIEEEEEJ","sol":"0000001000000010000010000000000010000000000000010000000000010001000000000001000000000000100100000000","score":81.5},{"n":10,"k":1,"reg":"AAAAAABBBBCCAABBBBBBCAAABBBDDDCCCAABAEEFCGCAAAAAAFCGHHHFFAFFGGGGHFAAAFGIGGHFFFAFGIJJHHHFFFIIIJFFFFFF","sol":"0000001000100000000000000000010000000100000001000000000000100010000000000010000001000000000001000000","score":90},{"n":10,"k":1,"reg":"AABBBBBBBBAAACCCDDBBACACCCDCCBCCCCCCCCEBCCCCFCGEEBHCCFFEGEBBCCCFEEGEBBIIFFEGGEBEIFFIEEEEEEIIIIJJJEEE","sol":"0000000001000000010000100000000000100000000000100010000000000001000000010000000000000000100000010000","score":99.5},{"n":10,"k":1,"reg":"ABCCCDDEEEABBBCCDDEEAABBBBBDDEABBFGHHEEEAFBFGHHEEEAFFFGAHHEIAFAAAAEHEIAAAEEEEHEIAJAEAAEEEIAAAAAEEIII","sol":"0010000000000000010000000100000001000000000000100000001000001000000000000000001001000000000000000001","score":106},{"n":10,"k":1,"reg":"AAABBBCDDDACCBCCCCCEAACBBBCFFEAACCCCCFEEAAAAAEEFEGAGHHAEFFEGAGHEEEEEEGAGHHHIEEJGAGGGGIEEJGAAAAGGGGGG","sol":"0000000100010000000000010000000000000001100000000000000010000010000000000001000000000000100000100000","score":126.5},{"n":10,"k":1,"reg":"AAAABBBBBCADDBBBDECCADBBDBDEEFADDDDBDFFFADDDDDDDDFAADDGGDDDFHHDGGGDDFFHGGGGIJDFFHGGGGIJJJFHHHHGGJJJF","sol":"0000000001000000010000100000000000000010000010000001000000000001000000000001000010000000000000001000","score":132.5},{"n":10,"k":1,"reg":"ABCDDDDDEEABCDCCCDEDAACDDCDDDDCCCCDCDDFDCCGCCCDDFDCGGGHCCFFDGGHGHCCCFDGGHHHIIJFFGHHHGJJJJFGGGGGGJJFF","sol":"0100000000000000001010000000000000000001000010000000000001000001000000000001000000100000000000001000","score":135},{"n":10,"k":1,"reg":"AAABBCBBBBAAAABBBDDDAEEAAABBDDAFFFFBBBDDGFHIIIIBBDGGHHIJJJBDGHHHJJJJBDGHGHHHHJBJGHGHGGHJJJGGGGGGHHHJ","sol":"0000010000100000000000100000000000000100010000000000001000000000000001000000100000000000100001000000","score":163.5},{"n":10,"k":1,"reg":"AABBCCCCCCAACCCDDDEEACCCEDEEEECCCEEDDEEECCFFEEDDEEFFFEEDDGGEEFEEEEEEEEEEEHHHIIIIHEEHIIIHIIHHHHHHHHIJ","sol":"0001000000000000010010000000000010000000000001000000000000100100000000000010000000000010000000000001","score":186},{"n":10,"k":1,"reg":"AAAABBBBBBAABBBCCBBBDAABAAABBBDAABAAEFFFDAABAAEEFGDDAAAEEEFGAAAEEEHHFGAIIEEEHHGGAAAAEEHGGGJJAAAAAAAA","sol":"0000000010000001000010000000000000000100000000000100010000000000001000001000000000001000000100000000","score":195}],"insane":[{"n":11,"k":1,"reg":"AAAAAABBBBCAAABBBBBBDEABBBBFBDDDEAAFFFFBDEEEAGGFHFFHHEEAGGFHFHHIIIGGGFHHHHHHIGGGHHHJJJJIGGGKGHHHHJIGKKKGHHJJJIGGGGGHHJIII","sol":"0000000000100000100000000000010000010000000000000000010100000000000000100000000000010000010000000000001000000000000000100","score":223.2},{"n":11,"k":1,"reg":"AAAAAAABBBBCDAAEAAAABBCDDAEEEBBBBFDEEEBEBBBBFDDDEBBBEBBFFFDEEEEEBGFDDDDHHEEGGFIIDHHJEEGGFIHHHJJJGGGFIIFJJKJJGGFFFFFJKJJJJ","sol":"0000100000010000000000000000000100100000000000000000100000000000010000010000000100000000000000010000001000000000000010000","score":237.2},{"n":11,"k":1,"reg":"AAAAAAAAABBCAAADEEEAAACCADDDDEEEACAAAAADFEEACAAAADDFFEEGGGAEEDEFEEGAAAAEEEEEEGAGGHIIIJEEGGGHHHHHJJEGGGKKGHHJJJGGGGGGGHHJJ","sol":"0000000000100001000000010000000000000000100000100000000000001000001000000000000000010000000000000100001000000000000000100","score":237.7},{"n":11,"k":1,"reg":"ABBCDDDDDDDABCCDDDEEEEFBCCGCDDEEEFCCCGCEEEEEFFFCCCEEHHEFFICEEEEEHHFIICEEHHHHJFFIIIEEKHJJFFFIIIKKHJHFFFFIIHHHHHFFFFFFFFFFF","sol":"0010000000010000000000000000010000000100000000000000001000100000000100000000000000000010000000100000000000010000000100000","score":256.2},{"n":11,"k":1,"reg":"ABBBBBBBBBBABCCCCCBBDDABBAAACBBBBAAAAECCBBBBFAGAECCCBBBAAGGEHHCCCCAGGGEEHHHHCIGIIEEEHJHCIGIEEEHHJHCIGIKEEHJJCCIIIKKEEEEEE","sol":"0000000100000000000001000010000000000001000010000000000001000000000000000001000000100000000000001000001000000001000000000","score":262.2},{"n":11,"k":1,"reg":"AAAAABBBCCCABBBBBDDEECABFFFBBDECCABBFGGBBECGAAFFGGGGGGGFFFGGGHGHGIFJFFGGHHHGIFJKGGGHHGGIJJKKKHHHGIIKKKHHHHGGGIKKKHHGGGGGI","sol":"0000000001000000001000000001000000000000010010000000000001000000000000100000001000000000000100000000000001000000000000001","score":264.2},{"n":11,"k":1,"reg":"AAABBBBBBCCADBBEEBBBCCADDBDDDDBBCADDDDFFFBBBADDGDDDFFFBAADGGGDFBBBDADDGGDFFFHDDDDDGDHHHHDIDDGGGHJHJDIKGGHHHJHJIIIIIJJJJJJ","sol":"0000000001000001000000000000001000000010000000010000000000000100000100000000000000001000000000000010010000000010000000000","score":267.2},{"n":11,"k":1,"reg":"AAAAABBBCCCADDADBDBBBCADDADBDBBCCAADDDDDDDEEAADFFDDGGGGAAFFDDGGHHGFAFDDIIIHIGFAFFDDFIIIIFFJFDDFIKIIFFFFFFFIKKIFFKKKKKKKII","sol":"0000010000000000000001000010000000000000001001000000000000000100000000000010010000000000001000000000000000100000010000000","score":272.7},{"n":11,"k":1,"reg":"AAABBBBBBBCADAABEEBBBFDDAABBEFFFFDDABBFFFFGGDDDDDDFFGGGDDHDDFFFFFGDHHIIIIFJFGDKKIFFFFJGGDKKIKKKFFGFDKKIKFFFFFFKKKKKFFFFFF","sol":"0000000000100010000000000000100000000100000000000000010001000000000000010000000000000100100000000000000000100001000000000","score":297.7},{"n":11,"k":1,"reg":"AAAAAABBBCCADEEABBBBCCEEEAAEEEBCCEFEEEEEECCCEFEEFFECCCCEFFEFGGCHHIEFEEFGCCHHIEFFFFGCHHIIFFFCCCCHHIIJJFFFFFFIIKJJFFFFFFIIK","sol":"0000001000001000000000000010000000010000000000000001000000001000000000000010000010000000000000000101000000000000000000001","score":315.2},{"n":11,"k":1,"reg":"AAABBBBCCDDEAABFBBCCCCEAABFFBCGGCEEAGGGGGGGCHEAAGAAAGGCHEAAAAIIIGCHHHHAAIIIGCHJHAAAGGGGCHJHHAAAGCCCHJHHJAAGCKCJJJJJAAACKC","sol":"0000000000100010000000000001000001000000000000100000000000000010000100000000000000010000000000001000000100000000000000010","score":324.2},{"n":11,"k":1,"reg":"AAAAAAAABBBCCAAAAAABBBCCDAEAAAAABFDDAEEABBBBFDFAGEEHBBBFFFGGEHHHBBFGFGIEBBBBBGGFGIEBEBBBGGGGEEEEBBBGGGGGEEJBBKGGGEEEJJKKK","sol":"0000000001001000000000000001000000010000000010000000000000000001000000100000000000001000000100000000000000000100000010000","score":326.7},{"n":11,"k":1,"reg":"AAABBCCCCCCDDABBBBCEECFDDDBFBBBECFDDDBFFGGEEFFDDFFFFFFEHFFFFIIFJJEHHHFFIIIIJJHKHHFFFIIJJKKKHHHIIJJHKHHHHHHHJHHKKKKHHHHHHH","sol":"0100000000000000001000000010000000000000010000100000000000000000010001000000000000000010000000100001000000000000000100000","score":359.7},{"n":11,"k":1,"reg":"AAAAABBCCCCAAABBBBBDCCAEEBDDDDDCCAABBDBBBCCCFAABBBBCCCGFBBBHHBIIGGFFBHHGGGIGJGFFFHGJGGGJGFFGGGJJGGJGGGGJJJJGJJGKJJJJJJJJJ","sol":"0001000000000000000100001000000000000000000100000100000000000010001000000000000001000000000000000100000001000001000000000","score":364.7},{"n":11,"k":1,"reg":"AAABBBCCCDDEAEEEBCCCCDEAEECCCFCDDEEEGGGGFCCDEEGGHGFFIDDEEGHHHFIIIDJEHHHFFFFIDJJHHHFFFIIIHHHFFFFFIFFHHFFFHFFFFKHHHHHHHHHKK","sol":"0000100000001000000000000100000000000000010000000100000000000010000000000000110000000000001000000000000001000000000000010","score":608.2}]};
+</script>
+<script>
+(function () {
+'use strict';
+const E = window.SBE;
+const LET = 'ABCDEFGHIJKLMNOP';
+const LEVELS = [
+  { key: 'easy', name: 'Easy', code: 'E', n: 6, k: 1 },
+  { key: 'medium', name: 'Medium', code: 'M', n: 8, k: 1 },
+  { key: 'hard', name: 'Hard', code: 'H', n: 9, k: 1 },
+  { key: 'expert', name: 'Expert', code: 'X', n: 10, k: 1 },
+  { key: 'insane', name: 'Insane', code: 'I', n: 11, k: 1 },
+];
+const LV = Object.fromEntries(LEVELS.map(l => [l.key, l]));
+const $ = id => document.getElementById(id);
+const STAR = '<svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.4l2.95 6.2 6.75.8-5 4.66 1.33 6.74L12 17.4l-6.03 3.4 1.33-6.74-5-4.66 6.75-.8z"/></svg>';
+
+// ---------- puzzles ----------
+const PUZ = {}, LIST = {}, GEN = {};
+LEVELS.forEach(L => {
+  LIST[L.key] = []; GEN[L.key] = [];
+  (INVENTORY[L.key] || []).forEach((p, i) => {
+    const id = L.code + String(i + 1).padStart(2, '0');
+    PUZ[id] = mkPuz(id, L.key, i + 1, p); LIST[L.key].push(id);
+  });
+});
+function mkPuz(id, level, num, p) {
+  return { id, level, num, n: p.n, k: p.k, reg: Array.from(p.reg, ch => LET.indexOf(ch)), sol: Array.from(p.sol, Number), score: p.score, gen: !!p.gen };
+}
+
+// ---------- storage (per browser) ----------
+const KEY = 'stargrid.v2';
+let storageOK = true;
+function blank() { return { v: 1, p: {}, gen: {}, set: { auto: false, labels: true, err: true }, last: null }; }
+function load() {
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.v === 1) return Object.assign(blank(), s); } catch (e) { storageOK = false; }
+  // carry over Easy and Medium records from the first version (those puzzles did not change)
+  const b = blank();
+  try {
+    const o = JSON.parse(localStorage.getItem('stargrid.v1'));
+    if (o && o.v === 1) {
+      for (const [id, r] of Object.entries(o.p || {})) if (/^[EM]\d/.test(id) || /^G[EM]/.test(id)) b.p[id] = r;
+      for (const [id, g] of Object.entries(o.gen || {})) if (g.level === 'easy' || g.level === 'medium') b.gen[id] = g;
+      if (o.set) b.set = o.set;
+    }
+  } catch (e) {}
+  return b;
+}
+let store = load();
+function save() { try { localStorage.setItem(KEY, JSON.stringify(store)); storageOK = true; } catch (e) { storageOK = false; } }
+function addGenerated(g) {
+  const lv = g.level; const num = GEN[lv].length + 1;
+  PUZ[g.id] = mkPuz(g.id, lv, num, Object.assign({ gen: true }, g)); GEN[lv].push(g.id);
+}
+Object.values(store.gen).sort((a, b) => (a.t || 0) - (b.t || 0)).forEach(addGenerated);
+
+// ---------- worker ----------
+function handle(msg, post) {
+  const SB = (typeof self !== 'undefined' && self.SBE) ? self.SBE : window.SBE;
+  const CRIT = {
+    easy: { n: 6, k: 1, ok: g => g.maxTier <= 2 && g.score >= 2 && g.score <= 7 },
+    medium: { n: 8, k: 1, harden: 40, target: g => g.score >= 9, ok: g => g.maxTier <= 4 && g.maxTier >= 2 && g.score >= 6 },
+    hard: { n: 9, k: 1, harden: 1500, time: 8000, target: g => g.score >= 20 && g.maxTier >= 3, ok: g => g.score >= 18 && g.score <= 70 && g.maxTier >= 3 && g.maxChain <= 1 },
+    expert: { n: 10, k: 1, harden: 3000, time: 30000, target: g => g.maxTier >= 5 && g.score >= 70, ok: g => g.maxTier >= 5 && g.score >= 70 && g.score < 200 },
+    insane: { n: 11, k: 1, harden: 4000, time: 90000, target: g => g.score >= 220 && g.maxChain >= 3, ok: g => g.score >= 200 && g.maxChain >= 3 },
+  };
+  function unitCells(G, units) { return (units || []).map(u => G.units[u].cells); }
+  const id = msg.id;
+  if (msg.type === 'hint') {
+    const G = SB.makeGeom(msg.n, msg.k, msg.reg);
+    const wrong = [];
+    msg.board.forEach((v, i) => { if ((v === 1 && msg.sol[i] !== 1) || (v === 2 && msg.sol[i] === 1)) wrong.push(i); });
+    if (wrong.length) return post({ id, kind: 'wrong', cells: wrong });
+    const s = Int8Array.from(msg.board);
+    const st = SB.findStep(G, s, {});
+    if (!st) return post({ id, kind: 'none' });
+    return post({ id, kind: 'step', tier: st.tier, tierName: SB.TIER_NAMES[st.tier], text: st.text, set: st.set, cells: st.cells, units: unitCells(G, st.units), chain: st.chain || null });
+  }
+  if (msg.type === 'why') {
+    const G = SB.makeGeom(msg.n, msg.k, msg.reg);
+    const c = msg.cell, val = msg.board[c], correct = msg.sol[c] === 1 ? 1 : 2;
+    const t = new Int8Array(G.N);
+    msg.board.forEach((v, i) => { if (i !== c && v && ((v === 1) === (msg.sol[i] === 1))) t[i] = v; });
+    const ignored = msg.board.filter((v, i) => i !== c && v && ((v === 1) !== (msg.sol[i] === 1))).length;
+    if (val !== correct) {
+      t[c] = val; const chain = [];
+      for (let i = 0; i < 300; i++) {
+        const ct = SB.findContradiction(G, t);
+        if (ct) return post({ id, kind: 'why', verdict: 'wrong', chain, reason: ct.text, ignored, units: ct.unit !== undefined ? unitCells(G, [ct.unit]) : [], cells: ct.cells || [] });
+        const st = SB.findStep(G, t, { maxTier: 4, noTrials: true });
+        if (!st) break;
+        if (st.contradiction) return post({ id, kind: 'why', verdict: 'wrong', chain, reason: st.text, ignored, units: unitCells(G, st.units), cells: [] });
+        SB.applyStep(t, st); if (st.tier > 0) chain.push(st.text);
+      }
+      return post({ id, kind: 'why', verdict: 'wrong', chain: [], reason: null, ignored });
+    }
+    const steps = []; let maxT = 0;
+    for (let i = 0; i < 400; i++) {
+      const st = SB.findStep(G, t, {});
+      if (!st || st.contradiction) break;
+      SB.applyStep(t, st); steps.push(st); if (st.tier > maxT) maxT = st.tier;
+      if (t[c] !== 0) break;
+    }
+    const last = steps[steps.length - 1];
+    return post({ id, kind: 'why', verdict: t[c] === val ? 'ok' : 'unknown', count: steps.filter(s => s.tier > 0).length || 1, maxTier: maxT, maxName: SB.TIER_NAMES[maxT], last: last ? last.text : '', lastTier: last ? last.tier : 0, ignored, cells: last ? last.cells : [], units: last ? unitCells(G, last.units) : [], chain: last && last.chain ? last.chain : null });
+  }
+  if (msg.type === 'import') {
+    const cs = SB.countSolutions(msg.n, msg.k, msg.reg, 2);
+    if (cs.count !== 1) return post({ id, kind: 'import', ok: false, count: cs.count });
+    const g = SB.grade(SB.makeGeom(msg.n, msg.k, msg.reg));
+    return post({ id, kind: 'import', ok: true, sol: Array.from(cs.solution).join(''), score: g.score, solved: g.solved });
+  }
+  if (msg.type === 'gen') {
+    const L = CRIT[msg.level]; const t0 = Date.now(); let tries = 0;
+    let seed = msg.seed >>> 0;
+    while (Date.now() - t0 < 300000) {
+      seed = (seed + 1) >>> 0; tries++;
+      const rng = SB.mulberry32(seed);
+      const p = SB.generateUnique(L.n, L.k, rng); if (!p) continue;
+      let reg = p.reg, g = SB.grade(SB.makeGeom(L.n, L.k, reg));
+      if (L.harden && !(g.solved && L.ok(g) && L.target(g))) { const h = SB.harden(L.n, L.k, reg, p.sol, SB.mulberry32(seed + 99), L.harden, L.target, L.time); reg = h.reg; g = h.grade; }
+      post({ id, kind: 'progress', tries, secs: Math.round((Date.now() - t0) / 1000) });
+      if (!g.solved || !L.ok(g)) continue;
+      const cs = SB.countSolutions(L.n, L.k, reg, 2);
+      if (cs.count !== 1) continue;
+      return post({ id, kind: 'gen', puzzle: { n: L.n, k: L.k, reg: reg.map(x => 'ABCDEFGHIJKLMNOP'[x]).join(''), sol: Array.from(cs.solution).join(''), score: g.score, seed } });
+    }
+    return post({ id, kind: 'genfail' });
+  }
+}
+let worker = null, reqId = 0; const pending = {};
+try {
+  const src = $('engine').textContent + '\nconst handle=' + handle.toString() + ';\nself.onmessage=e=>handle(e.data,m=>self.postMessage(m));';
+  worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+  worker.onmessage = e => { const cb = pending[e.data.id]; if (cb) cb(e.data); };
+  worker.onerror = () => { worker = null; };
+} catch (e) { worker = null; }
+function ask(msg, onMsg) {
+  const id = ++reqId; msg.id = id;
+  return new Promise(resolve => {
+    const cb = m => { if (m.kind === 'progress') { onMsg && onMsg(m); return; } delete pending[id]; resolve(m); };
+    pending[id] = cb;
+    if (worker) worker.postMessage(msg);
+    else setTimeout(() => handle(msg, m => cb(m)), 20);
+  });
+}
+
+// ---------- game state ----------
+let level = 'easy', G = null, cursor = 0, mode = 'cycle';
+let hl = { units: new Set(), targets: new Set(), wrong: new Set() };
+let pendingHint = null;
+
+function rec(id) { return store.p[id] || (store.p[id] = { b: '', t: 0, pen: 0, h: 0, c: 0, done: false, best: null, clean: false }); }
+function openPuzzle(id) {
+  const puz = PUZ[id]; if (!puz) return;
+  if (G) persist();
+  level = puz.level;
+  const r = rec(id);
+  const N = puz.n * puz.n;
+  const board = new Int8Array(N);
+  if (r.b && r.b.length === N) for (let i = 0; i < N; i++) board[i] = +r.b[i];
+  G = { puz, board, hist: [], fut: [], elapsed: r.t || 0, pen: r.pen || 0, hints: r.h || 0, checks: r.c || 0, done: !!(r.done && r.b && isSolved(puz, board)) };
+  cursor = 0; clearHL(); pendingHint = null;
+  $('shareCode') && showShareCode();
+  store.last = id; save();
+  buildBoard(); render(); renderLevels(); renderList(); setReason(defaultReason());
+  $('doneCard').hidden = true; $('clearConfirm').hidden = true;
+  if (G.done) showDone(false);
+}
+function persist() {
+  if (!G) return; const r = rec(G.puz.id);
+  r.b = Array.from(G.board).join(''); r.t = Math.round(G.elapsed); r.pen = G.pen; r.h = G.hints; r.c = G.checks;
+  save();
+}
+function isSolved(puz, b) { for (let i = 0; i < b.length; i++) if ((b[i] === 1) !== (puz.sol[i] === 1)) return false; return true; }
+
+// ---------- hint cooldown ----------
+let hintReadyAt = 0;
+function hintTick() {
+  const b = $('bHint'); if (!b) return;
+  const left = Math.ceil((hintReadyAt - Date.now()) / 1000);
+  const html = left > 0 ? 'Hint <span class="cd">' + left + 's</span>' : 'Hint';
+  if (b.innerHTML !== html) b.innerHTML = html;
+  b.disabled = !G || G.done || left > 0;
+}
+
+// ---------- timer ----------
+let lastTick = performance.now();
+setInterval(() => {
+  const now = performance.now(), dt = now - lastTick; lastTick = now;
+  if (G && !G.done && document.visibilityState === 'visible' && !$('playView').hidden) { G.elapsed += dt; }
+  drawTimer(); hintTick();
+}, 250);
+setInterval(() => { if (G && !G.done) persist(); }, 5000);
+document.addEventListener('visibilitychange', () => { lastTick = performance.now(); if (document.visibilityState !== 'visible') persist(); });
+function fmt(ms) { const s = Math.floor(ms / 1000); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, ss = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : String(m).padStart(2, '0')) + ':' + String(ss).padStart(2, '0'); }
+function drawTimer() {
+  if (!G) return;
+  const t = $('timer');
+  t.firstChild.nodeValue = fmt(G.elapsed);
+  const bits = []; if (G.pen) bits.push('+' + G.pen + 's'); if (G.hints) bits.push(G.hints + ' hint' + (G.hints === 1 ? '' : 's'));
+  t.lastChild.textContent = bits.join(' · ');
+}
+
+// ---------- board ----------
+function buildBoard() {
+  const { n, reg } = G.puz; const b = $('board');
+  b.style.setProperty('--n', n); $('bwrap').style.setProperty('--n', n);
+  $('colnums').innerHTML = Array.from({ length: n }, (_, i) => '<span>' + (i + 1) + '</span>').join('');
+  $('rownums').innerHTML = Array.from({ length: n }, (_, i) => '<span>' + (i + 1) + '</span>').join('');
+  const colors = regionColors(G.puz);
+  const seen = new Set(); let html = '';
+  for (let i = 0; i < n * n; i++) {
+    const r = (i / n) | 0, c = i % n, g = reg[i];
+    const cls = ['cell'];
+    if (c === n - 1) cls.push('lastC'); if (r === n - 1) cls.push('lastR');
+    const lab = seen.has(g) ? '' : '<span class="lab">' + LET[g] + '</span>'; seen.add(g);
+    html += '<div class="' + cls.join(' ') + '" data-i="' + i + '" role="gridcell" style="background-color:var(--r' + colors[g] + ')">' + lab + '<span class="m"></span></div>';
+  }
+  // region boundaries drawn as one overlay so lines stay continuous at every corner
+  let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const i = r * n + c;
+    if (c < n - 1 && reg[i] !== reg[i + 1]) d += 'M' + (c + 1) + ' ' + r + 'V' + (r + 1);
+    if (r < n - 1 && reg[i] !== reg[i + n]) d += 'M' + c + ' ' + (r + 1) + 'H' + (c + 1);
+  }
+  html += '<svg class="walls" viewBox="0 0 ' + n + ' ' + n + '" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + '"/></svg>';
+  b.innerHTML = html; b.classList.toggle('won', false);
+  const L = LV[G.puz.level];
+  $('ptitle').textContent = G.puz.gen ? L.name + ' · Generated ' + G.puz.num : L.name + ' · Puzzle ' + G.puz.num;
+  $('prule').textContent = n + '×' + n + ' · ' + G.puz.k + ' star' + (G.puz.k > 1 ? 's' : '') + ' in every row, column and region · rating ' + G.puz.score;
+}
+// Give each region its own tint, keeping similar hues (warm, blue, green) apart.
+const HUE_GROUP = [0, 1, 2, 3, 1, 2, 0, 2, 0, 1, 4];
+function regionColors(puz) {
+  const n = puz.n, reg = puz.reg, adjSet = new Set();
+  for (let i = 0; i < n * n; i++) {
+    if (i % n < n - 1 && reg[i] !== reg[i + 1]) adjSet.add(Math.min(reg[i], reg[i + 1]) * 32 + Math.max(reg[i], reg[i + 1]));
+    if (i + n < n * n && reg[i] !== reg[i + n]) adjSet.add(Math.min(reg[i], reg[i + n]) * 32 + Math.max(reg[i], reg[i + n]));
+  }
+  const pairs = Array.from(adjSet, v => [v >> 5, v & 31]);
+  let seed = 0; for (const ch of puz.id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+  const rng = E.mulberry32(seed || 1);
+  let best = null, bestScore = 1e9;
+  for (let t = 0; t < 400; t++) {
+    const perm = [...Array(11).keys()];
+    for (let i = 10; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [perm[i], perm[j]] = [perm[j], perm[i]]; }
+    let sc = 0; for (const [a, b] of pairs) if (HUE_GROUP[perm[a]] === HUE_GROUP[perm[b]]) sc++;
+    if (sc < bestScore) { bestScore = sc; best = perm; if (!sc) break; }
+  }
+  return best;
+}
+function ruleErrors() {
+  const { n, k, reg } = G.puz, b = G.board, bad = new Set();
+  for (let i = 0; i < n * n; i++) if (b[i] === 1) {
+    const r = (i / n) | 0, c = i % n;
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      if (!dr && !dc) continue; const rr = r + dr, cc = c + dc;
+      if (rr >= 0 && rr < n && cc >= 0 && cc < n && b[rr * n + cc] === 1) { bad.add(i); bad.add(rr * n + cc); }
+    }
+  }
+  const units = [];
+  for (let x = 0; x < n; x++) { units.push([...Array(n)].map((_, j) => x * n + j)); units.push([...Array(n)].map((_, j) => j * n + x)); }
+  for (let g = 0; g < n; g++) units.push(reg.map((v, i) => v === g ? i : -1).filter(i => i >= 0));
+  for (const u of units) {
+    const st = u.filter(i => b[i] === 1).length, open = u.filter(i => b[i] === 0).length;
+    if (st > k) u.forEach(i => { if (b[i] === 1) bad.add(i); });
+    else if (st + open < k) u.forEach(i => bad.add(i));
+  }
+  return bad;
+}
+function render() {
+  const cells = $('board').children, b = G.board;
+  const errs = store.set.err ? ruleErrors() : new Set();
+  for (let i = 0; i < b.length; i++) {
+    const el = cells[i], m = el.lastChild, v = b[i];
+    const want = v === 1 ? 'star' : v >= 2 ? 'dot' : '';
+    if (m.dataset.v !== want) { m.dataset.v = want; m.innerHTML = v === 1 ? STAR : v >= 2 ? '<span class="dot"></span>' : ''; }
+    el.classList.toggle('err', errs.has(i));
+    el.classList.toggle('cursor', i === cursor && document.activeElement === $('board'));
+    el.classList.toggle('hl-unit', hl.units.has(i));
+    el.classList.toggle('hl-target', hl.targets.has(i));
+    el.classList.toggle('wrong', hl.wrong.has(i));
+    el.setAttribute('aria-label', E.cellLabel({ n: G.puz.n }, i) + (v === 1 ? ' star' : v >= 2 ? ' dot' : ' blank'));
+  }
+  $('board').classList.toggle('nolabels', !store.set.labels);
+  $('bUndo').disabled = !G.hist.length || G.done; $('bRedo').disabled = !G.fut.length || G.done;
+  ['bWhy', 'bCheck'].forEach(x => $(x).disabled = G.done);
+  hintTick();
+  drawTimer();
+}
+function clearHL() { hl = { units: new Set(), targets: new Set(), wrong: new Set() }; }
+
+// ---------- moves ----------
+function commit(changes) {
+  changes = changes.filter(([i, o, nv]) => o !== nv);
+  if (!changes.length || G.done) return;
+  G.hist.push(changes); G.fut = [];
+  after();
+}
+// 3 = dot placed automatically by a star; it behaves exactly like a dot (2)
+function dotNorm(v) { return v === 3 ? 2 : v; }
+function inScope(a, b) {
+  const n = G.puz.n, ra = (a / n) | 0, ca = a % n, rb = (b / n) | 0, cb = b % n;
+  return ra === rb || ca === cb || G.puz.reg[a] === G.puz.reg[b] || (Math.abs(ra - rb) <= 1 && Math.abs(ca - cb) <= 1);
+}
+function setCell(i, v, acc) {
+  const o = G.board[i]; if (o === v) return; G.board[i] = v; acc.push([i, o, v]);
+  if (o === 1 && v !== 1) {
+    // star removed: clear the automatic dots it placed, unless another star still covers them
+    const stars = []; for (let j = 0; j < G.board.length; j++) if (G.board[j] === 1) stars.push(j);
+    for (let j = 0; j < G.board.length; j++) {
+      if (G.board[j] !== 3 || !inScope(i, j)) continue;
+      if (stars.some(st => inScope(st, j))) continue;
+      G.board[j] = 0; acc.push([j, 3, 0]);
+    }
+  }
+  if (v === 1 && store.set.autoAll) {
+    const n = G.puz.n, r = (i / n) | 0, c = i % n, g = G.puz.reg[i];
+    for (let j = 0; j < n * n; j++) {
+      if (j === i || G.board[j] !== 0) continue;
+      const rj = (j / n) | 0, cj = j % n;
+      const near = Math.abs(rj - r) <= 1 && Math.abs(cj - c) <= 1;
+      if (near || rj === r || cj === c || G.puz.reg[j] === g) { G.board[j] = 3; acc.push([j, 0, 3]); }
+    }
+  }
+}
+function after() {
+  clearHL(); pendingHint = null; render(); persist();
+  if (isSolved(G.puz, G.board)) win();
+}
+function undo() { if (!G.hist.length || G.done) return; const ch = G.hist.pop(); for (let x = ch.length - 1; x >= 0; x--) G.board[ch[x][0]] = ch[x][1]; G.fut.push(ch); clearHL(); render(); persist(); }
+function redo() { if (!G.fut.length || G.done) return; const ch = G.fut.pop(); for (const [i, , v] of ch) G.board[i] = v; G.hist.push(ch); after(); }
+function nextVal(v) {
+  if (mode === 'star') return v === 1 ? 0 : 1;
+  if (mode === 'dot') return v === 2 ? 0 : 2;
+  return v === 0 ? 2 : v === 2 ? 1 : 0;
+}
+
+// pointer input with drag-painting of dots
+let drag = null;
+const boardEl = $('board');
+boardEl.addEventListener('contextmenu', e => e.preventDefault());
+boardEl.addEventListener('pointerdown', e => {
+  const el = e.target.closest('.cell'); if (!el || !G || G.done) return;
+  e.preventDefault(); boardEl.focus({ preventScroll: true });
+  const i = +el.dataset.i; cursor = i;
+  const o = dotNorm(G.board[i]); const v = e.button === 2 ? (o === 2 ? 0 : 2) : nextVal(o);
+  const acc = []; setCell(i, v, acc);
+  drag = { acc, paint: (o === 0 && v === 2) ? 2 : (o === 2 && v === 0) ? 0 : null, seen: new Set([i]) };
+  try { boardEl.setPointerCapture(e.pointerId); } catch (_) {}
+  clearHL(); render();
+});
+boardEl.addEventListener('pointermove', e => {
+  if (!drag || drag.paint === null) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY); const cell = el && el.closest && el.closest('.cell');
+  if (!cell || !boardEl.contains(cell)) return;
+  const i = +cell.dataset.i; if (drag.seen.has(i)) return; drag.seen.add(i);
+  const o = dotNorm(G.board[i]);
+  if (drag.paint === 2 && o === 0) setCell(i, 2, drag.acc);
+  if (drag.paint === 0 && o === 2) setCell(i, 0, drag.acc);
+  render();
+});
+// A dot that is turned into a star by the next tap is one move, so a single Undo clears both.
+function pushHist(acc) {
+  const last = G.hist[G.hist.length - 1];
+  if (last && last.length === 1 && acc[0][2] === 1 && last[0][0] === acc[0][0] && last[0][1] === 0 && last[0][2] === 2) { G.hist[G.hist.length - 1] = last.concat(acc); }
+  else G.hist.push(acc);
+  G.fut = [];
+}
+function endDrag() { if (!drag) return; const acc = drag.acc; drag = null; if (acc.length) { pushHist(acc); after(); } }
+boardEl.addEventListener('pointerup', endDrag);
+boardEl.addEventListener('pointercancel', endDrag);
+boardEl.tabIndex = 0;
+boardEl.addEventListener('focus', () => render());
+boardEl.addEventListener('blur', () => render());
+document.addEventListener('keydown', e => {
+  if (!G || $('playView').hidden) return;
+  const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'textarea' || tag === 'input') return;
+  const n = G.puz.n, key = e.key.toLowerCase();
+  if ((e.ctrlKey || e.metaKey) && key === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (key === 'z' && !e.ctrlKey && !e.metaKey) { undo(); return; }
+  if (key === 'y') { redo(); return; }
+  if (document.activeElement !== boardEl) return;
+  const r = (cursor / n) | 0, c = cursor % n;
+  if (key === 'arrowup') cursor = Math.max(0, r - 1) * n + c;
+  else if (key === 'arrowdown') cursor = Math.min(n - 1, r + 1) * n + c;
+  else if (key === 'arrowleft') cursor = r * n + Math.max(0, c - 1);
+  else if (key === 'arrowright') cursor = r * n + Math.min(n - 1, c + 1);
+  else if (key === 's' || key === 'd' || key === 'x' || key === ' ' || key === 'enter' || key === 'backspace' || key === 'delete') {
+    const o = dotNorm(G.board[cursor]);
+    const v = key === 's' ? (o === 1 ? 0 : 1) : (key === 'd' || key === 'x') ? (o === 2 ? 0 : 2) : (key === 'backspace' || key === 'delete') ? 0 : (o === 0 ? 2 : o === 2 ? 1 : 0);
+    const acc = []; setCell(cursor, v, acc); if (acc.length) { pushHist(acc); after(); }
+    e.preventDefault(); return;
+  } else return;
+  e.preventDefault(); render();
+});
+
+// ---------- win ----------
+function win() {
+  G.done = true;
+  const r = rec(G.puz.id), total = Math.round(G.elapsed + G.pen * 1000);
+  const clean = G.hints === 0 && G.checks === 0;
+  const first = !r.done;
+  r.done = true; r.solvedAt = Date.now(); r.lastHints = G.hints;
+  if (r.best == null || total < r.best) { r.best = total; r.clean = clean; }
+  else if (total === r.best && clean) r.clean = true;
+  persist(); $('board').classList.add('won'); render(); renderLevels(); renderList();
+  showDone(first);
+}
+function showDone() {
+  const r = rec(G.puz.id), total = Math.round(G.elapsed + G.pen * 1000);
+  const d = $('doneCard'); d.className = 'done'; d.hidden = false;
+  d.innerHTML = '<b>Solved</b>' +
+    '<span class="stat"><small>Time</small><span>' + fmt(total) + '</span></span>' +
+    '<span class="stat"><small>Hints used</small><span>' + G.hints + '</span></span>' +
+    '<span class="stat"><small>Board checks</small><span>' + G.checks + '</span></span>' +
+    '<span class="stat"><small>Best</small><span>' + fmt(r.best) + '</span></span>' +
+    (G.pen ? '<span class="muted">Time includes +' + G.pen + 's for board checks.</span>' : '') +
+    '<span style="flex:1"></span><button class="btn" id="dAgain">Play again</button><button class="btn primary" id="dNext">Next puzzle</button>';
+  $('dAgain').onclick = () => resetPuzzle();
+  $('dNext').onclick = () => { const ids = LIST[level].concat(GEN[level]); const nx = ids.find(id => !rec(id).done) || ids[(ids.indexOf(G.puz.id) + 1) % ids.length]; openPuzzle(nx); };
+}
+function resetPuzzle() {
+  const id = G.puz.id, r = rec(id); r.b = ''; r.t = 0; r.pen = 0; r.h = 0; r.c = 0;
+  save(); G = null; openPuzzle(id);
+}
+
+// ---------- reasoning panel ----------
+function esc(s) { return String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch])); }
+function defaultReason() { return '<p class="muted">Ask for a <b>Hint</b> to see the next logical step and why it holds. Select a cell you marked and press <b>Check this mark</b> to see whether it follows from the board.</p>'; }
+function setReason(html) { $('reasonBody').innerHTML = html; }
+function chip(t, name) { return '<span class="tier t' + t + '">' + esc(name) + '</span>'; }
+function showUnits(unitCells, targets) {
+  clearHL(); (unitCells || []).forEach(u => u.forEach(i => hl.units.add(i))); (targets || []).forEach(i => hl.targets.add(i)); render();
+}
+$('bHint').onclick = async () => {
+  if (!G || G.done) return;
+  if (Date.now() < hintReadyAt) return;
+  hintReadyAt = Date.now() + 30000; G.hints++; persist(); drawTimer(); hintTick();
+  setReason('<p class="muted">Working out the next step…</p>');
+  const puz = G.puz;
+  const m = await ask({ type: 'hint', n: puz.n, k: puz.k, reg: puz.reg, sol: puz.sol, board: Array.from(G.board, dotNorm) });
+  if (!G || G.puz !== puz) return;
+  if (m.kind === 'wrong') {
+    setReason('<span class="tier t5">Mistake on the board</span><p>' + (m.cells.length === 1 ? 'One of your marks disagrees' : m.cells.length + ' of your marks disagree') + ' with the solution, so no sound step can be built on the board as it stands. The marked cells are outlined in red.</p><div class="acts"><button class="btn" id="rmWrong">Remove those marks</button></div>');
+    clearHL(); m.cells.forEach(i => hl.wrong.add(i)); render();
+    $('rmWrong').onclick = () => { const acc = []; m.cells.forEach(i => setCell(i, 0, acc)); commit(acc); setReason(defaultReason()); };
+    return;
+  }
+  if (m.kind === 'none') { setReason('<p>No further deduction is available.</p>'); return; }
+  pendingHint = m;
+  let html = chip(m.tier, m.tierName) + '<p>' + esc(m.text) + '</p>';
+  if (m.chain && m.chain.length) html += '<p class="muted" style="margin:0">Forced steps under that assumption:</p><ol>' + m.chain.map(x => '<li>' + esc(x) + '</li>').join('') + '</ol>';
+  html += '<div class="acts"><button class="btn primary" id="rApply">Apply this step</button><button class="btn" id="rHide">Dismiss</button></div>';
+  setReason(html);
+  showUnits(m.units, m.set.map(x => x[0]));
+  $('rApply').onclick = () => { const acc = []; m.set.forEach(([i, v]) => setCell(i, v, acc)); commit(acc); setReason(defaultReason()); };
+  $('rHide').onclick = () => { clearHL(); render(); setReason(defaultReason()); };
+};
+$('bWhy').onclick = async () => {
+  if (!G || G.done) return;
+  const c = cursor, v = dotNorm(G.board[c]), lab = E.cellLabel({ n: G.puz.n }, c);
+  if (!v) { setReason('<p>Tap a cell that holds a star or a dot first, then press <b>Check this mark</b>. The cell you selected, ' + lab + ', is blank.</p>'); return; }
+  setReason('<p class="muted">Checking ' + lab + '…</p>');
+  const puz = G.puz;
+  const m = await ask({ type: 'why', n: puz.n, k: puz.k, reg: puz.reg, sol: puz.sol, board: Array.from(G.board, dotNorm), cell: c });
+  if (!G || G.puz !== puz) return;
+  const what = (v === 1 ? 'The star' : 'The dot') + ' at ' + lab;
+  const ign = m.ignored ? '<p class="muted">' + m.ignored + ' other mark' + (m.ignored > 1 ? 's' : '') + ' on the board ' + (m.ignored > 1 ? 'are' : 'is') + ' wrong and ' + (m.ignored > 1 ? 'were' : 'was') + ' left out of this check.</p>' : '';
+  let html = '';
+  if (m.verdict === 'wrong') {
+    html = '<span class="tier t5">Does not hold</span><p>' + what + ' contradicts the rules.</p>';
+    if (m.reason) {
+      html += m.chain.length ? '<p class="muted" style="margin:0">Starting from it, these steps are forced:</p><ol>' + m.chain.slice(0, 12).map(x => '<li>' + esc(x) + '</li>').join('') + (m.chain.length > 12 ? '<li>…</li>' : '') + '</ol>' : '';
+      html += '<p>Result: ' + esc(m.reason) + '.</p>';
+    } else html += '<p>The contradiction needs a longer chain than this checker follows, but the unique solution does not agree with this mark.</p>';
+    clearHL(); hl.wrong.add(c); (m.units || []).forEach(u => u.forEach(i => hl.units.add(i))); render();
+  } else if (m.verdict === 'ok') {
+    const direct = m.count <= 1;
+    html = '<span class="tier ok">Holds</span><p>' + what + ' is correct. ' + (direct ? 'It follows directly from the board as it stands:' : 'It follows after ' + m.count + ' logical steps from the board as it stands (hardest step: ' + esc(m.maxName.toLowerCase()) + '). The step that settles it:') + '</p>' +
+      '<p>' + chip(m.lastTier, E.TIER_NAMES[m.lastTier]) + ' ' + esc(m.last) + '</p>';
+    if (m.chain && m.chain.length) html += '<ol>' + m.chain.map(x => '<li>' + esc(x) + '</li>').join('') + '</ol>';
+    if (!direct) html += '<p class="muted">If you placed this mark without that chain in mind, it was correct but not yet proven.</p>';
+    showUnits(m.units, [c]);
+  } else {
+    html = '<p>' + what + ' agrees with the solution, but it could not be derived from the current board.</p>';
+  }
+  setReason(html + ign);
+};
+$('bCheck').onclick = () => {
+  if (!G || G.done) return;
+  G.pen += 15; G.checks++; persist(); drawTimer();
+  const wrong = []; let marks = 0;
+  G.board.forEach((v, i) => { if (v) marks++; if ((v === 1 && G.puz.sol[i] !== 1) || (v >= 2 && G.puz.sol[i] === 1)) wrong.push(i); });
+  clearHL(); wrong.forEach(i => hl.wrong.add(i)); render();
+  if (!wrong.length) setReason('<span class="tier ok">All clear</span><p>All ' + marks + ' marks on the board agree with the solution.</p>');
+  else {
+    setReason('<span class="tier t5">' + wrong.length + ' wrong</span><p>' + wrong.length + ' of your ' + marks + ' marks ' + (wrong.length === 1 ? 'disagrees' : 'disagree') + ' with the solution. They are outlined in red.</p><div class="acts"><button class="btn" id="rmW2">Remove them</button></div>');
+    $('rmW2').onclick = () => { const acc = []; wrong.forEach(i => setCell(i, 0, acc)); commit(acc); setReason(defaultReason()); };
+  }
+};
+$('bUndo').onclick = undo; $('bRedo').onclick = redo;
+$('bClear').onclick = () => { $('clearConfirm').hidden = false; };
+$('clearNo').onclick = () => { $('clearConfirm').hidden = true; };
+$('clearYes').onclick = () => { $('clearConfirm').hidden = true; resetPuzzle(); };
+['mCycle', 'mStar', 'mDot'].forEach(id => $(id).onclick = () => {
+  mode = id === 'mCycle' ? 'cycle' : id === 'mStar' ? 'star' : 'dot';
+  ['mCycle', 'mStar', 'mDot'].forEach(x => $(x).setAttribute('aria-pressed', String(x === id)));
+});
+
+// ---------- options ----------
+$('oAuto').checked = !!store.set.autoAll; $('oLabels').checked = store.set.labels !== false; $('oErr').checked = store.set.err !== false;
+$('oAuto').onchange = e => { store.set.autoAll = e.target.checked; save(); };
+$('oLabels').onchange = e => { store.set.labels = e.target.checked; save(); render(); };
+const SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>';
+function applyTheme() {
+  const dark = store.set.theme === 'dark';
+  document.body.classList.toggle('sg-dark', dark);
+  const b = $('bTheme'); b.setAttribute('aria-pressed', String(dark));
+  b.innerHTML = dark ? SUN + 'Light mode' : MOON + 'Dark mode';
+  b.title = dark ? 'Switch to light colours' : 'Switch to dark colours';
+}
+$('bTheme').onclick = () => { store.set.theme = store.set.theme === 'dark' ? 'light' : 'dark'; save(); applyTheme(); };
+applyTheme();
+$('oErr').onchange = e => { store.set.err = e.target.checked; save(); render(); };
+
+// ---------- levels & list ----------
+function levelStats(key) {
+  const ids = LIST[key]; const solved = ids.filter(id => store.p[id] && store.p[id].done);
+  return { total: ids.length, solved: solved.length };
+}
+function renderLevels() {
+  $('levels').innerHTML = LEVELS.map(L => {
+    const s = levelStats(L.key);
+    return '<button class="lvl ' + L.key + '" data-l="' + L.key + '" aria-pressed="' + (L.key === level) + '"><span class="nm">' + L.name + '</span><span class="meta">' + L.n + '×' + L.n + ' · ' + L.k + '★ · ' + s.solved + '/' + s.total + '</span><span class="bar"><i style="width:' + (s.total ? 100 * s.solved / s.total : 0) + '%"></i></span></button>';
+  }).join('');
+  $('levels').querySelectorAll('.lvl').forEach(b => b.onclick = () => {
+    const key = b.dataset.l; level = key;
+    const ids = LIST[key].concat(GEN[key]);
+    const pick = ids.find(id => store.p[id] && store.p[id].b && !store.p[id].done) || ids.find(id => !(store.p[id] && store.p[id].done)) || ids[0];
+    showView('play'); openPuzzle(pick);
+  });
+}
+function chipHTML(id, label) {
+  const r = store.p[id]; const cls = ['pchip'];
+  if (r && r.done) cls.push('solved'); else if (r && r.b && /[12]/.test(r.b)) cls.push('started');
+  const sub = r && r.done ? fmt(r.best) : r && r.b && /[12]/.test(r.b) ? 'started' : '—';
+  return '<button class="' + cls.join(' ') + '" data-id="' + id + '" aria-current="' + (G && G.puz.id === id) + '">' + label + '<small>' + sub + '</small></button>';
+}
+function renderList() {
+  const L = LV[level];
+  $('listTitle').textContent = L.name + ' puzzles';
+  let html = LIST[level].map(id => chipHTML(id, PUZ[id].num)).join('');
+  html += GEN[level].map(id => chipHTML(id, 'G' + PUZ[id].num)).join('');
+  $('plist').innerHTML = html;
+  $('plist').querySelectorAll('.pchip').forEach(b => b.onclick = () => openPuzzle(b.dataset.id));
+  $('bGen').disabled = genBusy;
+}
+// ---------- share codes ----------
+// Fixed puzzles: SG-H04. Generated puzzles: SG-<level><size>-<regions, 4 bits per cell, base64url>.
+const CODE_LEVEL = Object.fromEntries(LEVELS.map(l => [l.code, l.key]));
+function b64u(bytes) { let s = ''; bytes.forEach(b => s += String.fromCharCode(b)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function unb64u(t) { t = t.replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '='; const s = atob(t); return Array.from(s, ch => ch.charCodeAt(0)); }
+function shareCodeFor(puz) {
+  if (!puz.gen) return 'SG-' + puz.id;
+  const bytes = []; for (let i = 0; i < puz.reg.length; i += 2) bytes.push((puz.reg[i] << 4) | (i + 1 < puz.reg.length ? puz.reg[i + 1] : 0));
+  return 'SG-' + LV[puz.level].code + puz.n + '-' + b64u(bytes);
+}
+function regionsValid(n, reg) {
+  const cnt = new Array(n).fill(0); for (const g of reg) { if (!(g >= 0 && g < n)) return false; cnt[g]++; }
+  if (cnt.some(c => c === 0)) return false;
+  for (let g = 0; g < n; g++) {
+    const cells = []; reg.forEach((v, i) => { if (v === g) cells.push(i); });
+    const seen = new Set([cells[0]]), st = [cells[0]];
+    while (st.length) { const x = st.pop(); const r = (x / n) | 0, c = x % n;
+      for (const y of [r > 0 ? x - n : -1, r < n - 1 ? x + n : -1, c > 0 ? x - 1 : -1, c < n - 1 ? x + 1 : -1]) if (y >= 0 && reg[y] === g && !seen.has(y)) { seen.add(y); st.push(y); } }
+    if (seen.size !== cells.length) return false;
+  }
+  return true;
+}
+function showShareCode() { if (G) $('shareCode').value = shareCodeFor(G.puz); }
+$('shareCode').onfocus = e => e.target.select();
+$('bCopyCode').onclick = () => {
+  const box = $('shareCode');
+  const p = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(box.value) : Promise.reject();
+  p.then(() => $('shareMsg').textContent = 'Code copied.').catch(() => { box.focus(); box.select(); $('shareMsg').textContent = 'Code selected. Press Ctrl+C or ⌘C to copy.'; });
+};
+$('bLoad').onclick = async () => {
+  const raw = $('loadCode').value.trim().toUpperCase().startsWith('SG-') ? $('loadCode').value.trim() : '';
+  const msg = t => { $('shareMsg').textContent = t; };
+  let m = /^SG-([EMHXI])(\d\d)$/i.exec(raw);
+  if (m) {
+    const id = m[1].toUpperCase() + m[2];
+    if (!PUZ[id]) return msg('No fixed puzzle has that number.');
+    $('loadCode').value = ''; msg('Opened ' + LV[PUZ[id].level].name + ' puzzle ' + PUZ[id].num + '.'); openPuzzle(id); return;
+  }
+  m = /^SG-([EMHXI])(\d{1,2})-([A-Za-z0-9_-]+)$/i.exec(raw);
+  if (!m) return msg('That is not a Stargrid share code. Codes start with SG-.');
+  const lvKey = CODE_LEVEL[m[1].toUpperCase()], L = LV[lvKey], n = +m[2];
+  if (n !== L.n) return msg('That code has the wrong grid size for its level.');
+  let bytes; try { bytes = unb64u(m[3]); } catch (e) { return msg('That code is damaged. Copy it again in full.'); }
+  const reg = []; bytes.forEach(b => { reg.push(b >> 4, b & 15); }); reg.length = n * n;
+  if (bytes.length !== Math.ceil(n * n / 2) || !regionsValid(n, reg)) return msg('That code is damaged. Copy it again in full.');
+  const regStr = reg.map(x => LET[x]).join('');
+  const existing = Object.keys(PUZ).find(id => PUZ[id].level === lvKey && PUZ[id].reg.map(x => LET[x]).join('') === regStr);
+  if (existing) { $('loadCode').value = ''; msg('You already have this puzzle. Opened it.'); openPuzzle(existing); return; }
+  msg('Checking the puzzle…');
+  const r = await ask({ type: 'import', n, k: L.k, reg });
+  if (!r.ok) return msg('That layout does not have exactly one solution, so it cannot be loaded.');
+  let h = 0; for (const ch of regStr) h = (h * 33 + ch.charCodeAt(0)) >>> 0;
+  const id = 'S' + L.code + h.toString(36);
+  const g = { id, level: lvKey, t: Date.now(), n, k: L.k, reg: regStr, sol: r.sol, score: r.score, shared: true };
+  store.gen[id] = g; save(); addGenerated(g);
+  $('loadCode').value = ''; msg('Loaded into ' + L.name + ' as G' + PUZ[id].num + ' (rating ' + r.score + ').');
+  openPuzzle(id);
+};
+
+let genBusy = false;
+$('bGen').onclick = async () => {
+  if (genBusy) return; genBusy = true; $('bGen').disabled = true;
+  const lv = level, L = LV[lv];
+  const slow = lv === 'insane' || lv === 'expert';
+  $('genStatus').textContent = 'Searching' + (slow ? ' (this level can take a minute)…' : '…');
+  const seed = (Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0;
+  const m = await ask({ type: 'gen', level: lv, seed }, p => { $('genStatus').textContent = 'Tried ' + p.tries + ' candidate' + (p.tries > 1 ? 's' : '') + ' · ' + p.secs + ' s'; });
+  genBusy = false; $('bGen').disabled = false;
+  if (m.kind !== 'gen') { $('genStatus').textContent = 'No puzzle met the rating in time. Try again.'; return; }
+  const id = 'G' + L.code + m.puzzle.seed.toString(36);
+  const g = Object.assign({ id, level: lv, t: Date.now() }, m.puzzle);
+  store.gen[id] = g; save(); addGenerated(g);
+  $('genStatus').textContent = 'Added as G' + PUZ[id].num + ' (rating ' + g.score + ').';
+  if (level === lv) openPuzzle(id); else renderList();
+};
+
+// ---------- views ----------
+function showView(v) {
+  $('playView').hidden = v !== 'play'; $('progView').hidden = v !== 'prog'; $('helpView').hidden = v !== 'help';
+  $('vPlay').setAttribute('aria-pressed', String(v === 'play')); $('vProg').setAttribute('aria-pressed', String(v === 'prog')); $('vHelp').setAttribute('aria-pressed', String(v === 'help'));
+  $('levels').hidden = v === 'help';
+  if (v === 'prog') renderProgress();
+  lastTick = performance.now();
+}
+$('vPlay').onclick = () => showView('play'); $('vProg').onclick = () => { persist(); showView('prog'); }; $('vHelp').onclick = () => showView('help');
+function renderProgress() {
+  let rows = '<tr><th>Level</th><th>Solved</th><th>Without help</th><th>Hints used</th><th>Best</th><th>Average</th><th>Generated solved</th></tr>';
+  LEVELS.forEach(L => {
+    const recs = LIST[L.key].map(id => store.p[id]).filter(r => r && r.done);
+    const gen = GEN[L.key].map(id => store.p[id]).filter(r => r && r.done);
+    const all = recs.concat(gen).map(r => r.best);
+    const best = all.length ? fmt(Math.min(...all)) : '—';
+    const avg = all.length ? fmt(all.reduce((a, b) => a + b, 0) / all.length) : '—';
+    rows += '<tr><td>' + L.name + '</td><td class="num">' + recs.length + ' / ' + LIST[L.key].length + '</td><td class="num">' + recs.concat(gen).filter(r => r.clean).length + '</td><td class="num">' + recs.concat(gen).reduce((a, r) => a + (r.lastHints || 0), 0) + '</td><td class="num">' + best + '</td><td class="num">' + avg + '</td><td class="num">' + gen.length + ' / ' + GEN[L.key].length + '</td></tr>';
+  });
+  $('ptable').innerHTML = rows;
+  $('storeNote').textContent = storageOK ? 'Progress, in-progress boards and generated puzzles are saved in this browser. Use the code below to carry them to another device.' : 'This browser is blocking storage, so progress will be lost when the page closes. Copy the code below to keep it.';
+  try { $('exportBox').value = btoa(unescape(encodeURIComponent(JSON.stringify(store)))); } catch (e) { $('exportBox').value = ''; }
+}
+$('bCopy').onclick = () => {
+  const box = $('exportBox');
+  const p = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(box.value) : Promise.reject();
+  p.then(() => $('copyMsg').textContent = 'Copied.').catch(() => { box.focus(); box.select(); $('copyMsg').textContent = 'Selected. Press Ctrl+C or ⌘C to copy.'; });
+};
+$('bImport').onclick = () => {
+  try {
+    const s = JSON.parse(decodeURIComponent(escape(atob($('importBox').value.trim()))));
+    if (!s || s.v !== 1 || typeof s.p !== 'object') throw 0;
+    let n = 0;
+    for (const [id, r] of Object.entries(s.p)) {
+      const mine = store.p[id];
+      if (!mine || (r.done && (!mine.done || (r.best != null && r.best < mine.best))) || (!mine.done && !r.done && (r.b || '').replace(/0/g, '').length > (mine.b || '').replace(/0/g, '').length)) { store.p[id] = r; n++; }
+    }
+    for (const [id, g] of Object.entries(s.gen || {})) if (!store.gen[id]) { store.gen[id] = g; addGenerated(g); n++; }
+    save(); renderProgress(); renderLevels(); renderList();
+    $('importMsg').textContent = 'Imported ' + n + ' record' + (n === 1 ? '' : 's') + '.';
+    if (G) openPuzzle(G.puz.id);
+  } catch (e) { $('importMsg').textContent = 'That code could not be read. Paste the full code exactly as copied.'; }
+};
+$('bReset').onclick = () => { $('resetConfirm').hidden = false; };
+$('resetNo').onclick = () => { $('resetConfirm').hidden = true; };
+$('resetYes').onclick = () => {
+  const keepSet = store.set; store = blank(); store.set = keepSet;
+  LEVELS.forEach(L => { GEN[L.key].forEach(id => delete PUZ[id]); GEN[L.key] = []; });
+  save(); $('resetConfirm').hidden = true; G = null; openPuzzle(LIST.easy[0]); showView('prog');
+};
+window.addEventListener('pagehide', persist);
+
+// ---------- start ----------
+openPuzzle(store.last && PUZ[store.last] ? store.last : LIST.easy[0]);
+})();
+
+</script>
+</body></html>
